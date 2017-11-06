@@ -24,3 +24,8 @@ The factors for inter-calibration are outputed into "``factor.txt``".
 * If you want to input a different data file, change the line 22 in main.c.
 
 * If you want run with different MCMC steps, change the lines 11 and 12 in calibrations.c
+
+## Author:
+Yan-Rong Li,  liyanrong@ihep.ac.cn
+
+Please contact me if you have any problem.
