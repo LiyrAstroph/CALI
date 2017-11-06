@@ -13,7 +13,7 @@ int calibrate()
   n_recon = 500;
   mcmc_memory_init();
   reconstruct_int();
-  //mcmc_pt();
+  mcmc_pt();
   mcmc_stats();
 
   printf("%f\t%f\t%f\n", var_con_best[0], var_con_best[1], var_con_best[2]);
