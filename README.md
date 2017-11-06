@@ -5,7 +5,7 @@ reference: http://adsabs.harvard.edu/abs/2014ApJ...786L...6L
 
 ## Compiling:  
 First install the third-party package GSL and LAPACKE and then adjust Makefile with your system's library path. Type 
-``make`` will generate a execuutable file ``cali``.
+``make`` will generate an execuutable file ``cali``.
 
 ## Usage:
 
