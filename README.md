@@ -16,8 +16,8 @@ To run a code, type a commend in a Linux terminal:
 ```
 
 * The code read the data from the file "``ngc5548_year1.txt``" and do intercalibration by a Monte-Carlo Markov chain （MCMC） technique. 
-The inter-clibrated continum and emission line fluxes are outputed into "``opt.txt``" and "``hb.txt``", respectively. 
-The factors for inter-calibration are outputed into "``factor.txt``".
+The inter-clibrated continum and emission line fluxes are output into "``opt.txt``" and "``hb.txt``", respectively. 
+The factors for inter-calibration are output into "``factor.txt``". As a by-product, the code also reconstructs light curves, output into "opt_recon.txt" and "hb_recon.txt", respectively.
 
 * The MCMC run with 100,000 steps and use the first 50,000 as built-in steps. 
 
