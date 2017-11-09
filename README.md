@@ -15,7 +15,7 @@ To run a code, type a commend in a Linux terminal:
 ./cali param.txt
 ```
 
-* The code read the configurations from the file ``param.txt`` and do intercalibration by a Monte-Carlo Markov chain （MCMC） technique. ``param.txt`` specifies file names for continuum and line data, the steps of MCMC sampling and the built-in steps that are discarded.
+* The code reads configurations from the file ``param.txt`` and does intercalibration by a Monte-Carlo Markov chain （MCMC） technique. ``param.txt`` specifies file names for continuum and line data, the steps of MCMC sampling and the built-in steps that are discarded.
 
 * The inter-clibrated continum and emission line fluxes are output into ``cont.txt`` and ``line.txt``, respectively. 
 The factors for inter-calibration are output into ``factor.txt``. As a by-product, the code also reconstructs light curves, output into ``cont_recon.txt`` and ``line_recon.txt``, respectively.
