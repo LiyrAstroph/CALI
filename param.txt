@@ -1,0 +1,9 @@
+# parameter file
+# lines beginning with '#' are regarded as comments and are neglected
+#
+
+FileCont      ngc5548_cont.txt
+FileLine      ngc5548_line.txt
+
+NMcmc         20000
+NBuiltin      10000

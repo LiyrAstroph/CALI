@@ -14,20 +14,20 @@
 #define wave2 (5006.84-4861.34)
 #define  flux1  (1.0/3.0)
 
-extern const int nlist_max, ncode_max;
+extern const int nd_max, ncode_max;
 extern char **list;
 extern double *o3flux, *o3center;
-extern int nlist, ncode;
+extern int ncode, nd_cont, nd_line;
 
 extern const double o3flux_std;  // in a unit of 1.0e-14 erg/s
 
 extern double **hbb, **o3b, **o3n, **hbn, **optflux, **optslope;
 extern double *chi2, *chi2opt;
 
-extern double *date;
+extern double *date_cont, *date_line;
 
 extern char **code;
-extern int *obs_num, *code_idx;
+extern int *obs_num_cont, *obs_num_line, *code_idx_cont, *code_idx_line;
 
 extern double *ps_scale, *es_scale, *ps_scale_err, *es_scale_err;;
 
@@ -50,5 +50,17 @@ extern int n_recon;
 extern double * USmat;
 extern double * date_recon, * Fcon_recon, * Fcon_err_recon, * Fhb_recon, * Fhb_err_recon;
 extern double * var_con_best, * var_con_best_err, * var_hb_best, * var_hb_best_err;
+
+
+typedef struct
+{
+  char file_param[256];
+  char file_cont[256];
+  char file_line[256];
+
+  int n_mcmc, n_builtin;
+
+}PARSET;
+extern PARSET parset;
 
 #endif

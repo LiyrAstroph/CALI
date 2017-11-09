@@ -8,8 +8,8 @@
 int calibrate()
 {
 
-  n_mcmc = 100000;
-  nbuilt = 50000;
+  n_mcmc = parset.n_mcmc;
+  nbuilt = parset.n_builtin;
   n_recon = 500;
   mcmc_memory_init();
   reconstruct_int();

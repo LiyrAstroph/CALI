@@ -3,29 +3,10 @@
 
 //prototype
 
-int memory_malloc();
-
-int get_file_list(char *fname);
-int get_o3flux();
-int get_o3center();
-int scale_flux_by_OIII();
-int scaling();
-
 int output_optical(char *fname);
 int output_hb(char *fname);
-int read_dateset_code(char *fname);
 
-int memery_malloc();
-int get_line_fitting_par(char *fname);
-int get_cont_fitting_par(char *fname);
-
-void singlegauss(double *xin, double *y, int nd, double ain1, double ain2, double ain3);
-void gausshermite(double *xin, double *y, int nd, double ain1, double ain2, 
-  double ain3, double h3, double h4);
-
-int get_date_from_filename();
-
-
+int memory_malloc();
 int calibrate();
 
 //mcmc
@@ -43,14 +24,18 @@ void set_mcmc_param(double *theta, double *stepsize, double (*range)[2], int nth
 void init_cov_matrix(double *stepsize, int ntheta);
 void get_cov_matrix(double *theta, int nstep, int ntheta);
 void get_cov_matrix_diag(double *theta, int nstep, int ntheta);
-int read_dataset(char *fname);
+int read_dataset();
 double prob_variability_beta(double *var_con, double *var_hb, double beta);
 
 /* reconstruct */
 void reconstruct_int();
 int reconstruct_con(double *var_con);
 int reconstruct_hb(double *var_hb);
-void set_covar_Umat(double sigma, double tau, double alpha);
+void set_covar_Umat_con(double sigma, double tau, double alpha);
+void set_covar_Umat_hb(double sigma, double tau, double alpha);
+
+
+void read_parset();
 
 /* matrix operations */
 void inverse_mat(double *a, int n, int *info);
