@@ -4,12 +4,12 @@ A Bayesian method for the inter-calibration of spectra in reverberation mapping
 reference: http://adsabs.harvard.edu/abs/2014ApJ...786L...6L
 
 ## Compiling:  
-First install the third-party package GSL and LAPACKE and then adjust Makefile with your system's library path. Type 
+First install the third-party packages GSL and LAPACKE and then adjust Makefile with your system's library paths. Type 
 ``make`` will generate an execuutable file ``cali``.
 
 ## Usage:
 
-To run a code, type a commend in a Linux terminal:
+To run the code, type the following commend in a Linux terminal:
 
 ```Bash
 ./cali param.txt
