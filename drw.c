@@ -490,7 +490,7 @@ void mcmc_memory_init()
  */
 double prob_variability(double *var_con, double *var_hb)
 {
-  double prob, prob1, prob2, lambda, ave_con, lndet, sigma, tau, alpha;
+  double prob, prob1=0.0, prob2=0.0, lambda, ave_con, lndet, sigma, tau, alpha;
   double lndet_n0, lndet_n, prior_phi;
   double * ybuf, * Larr;
   int i, info;
@@ -536,43 +536,46 @@ double prob_variability(double *var_con, double *var_hb)
   prob1 = prob1 - 0.5*lndet - 0.5*log(lambda) + 0.5 * (lndet_n - lndet_n0);
 //  prob = prob - 0.5*log(lndet);
 
-  sigma = var_hb[0];
-  tau = var_hb[1];
-  alpha = var_hb[2];
-
-  set_covar_mat_hb(sigma, tau, alpha);
-  
-  for(i=0;i<nd_line*nd_line; i++)
+  if(parset.flag_line == 1)
   {
-    Cmat[i] = Smat[i] + Nmat[i];
-  }
+    sigma = var_hb[0];
+    tau = var_hb[1];
+    alpha = var_hb[2];
+
+    set_covar_mat_hb(sigma, tau, alpha);
   
-  memcpy(ICmat, Cmat, nd_line*nd_line*sizeof(double));
-  inverse_mat(ICmat, nd_line, &info);
+    for(i=0;i<nd_line*nd_line; i++)
+    {
+      Cmat[i] = Smat[i] + Nmat[i];
+    }
+  
+    memcpy(ICmat, Cmat, nd_line*nd_line*sizeof(double));
+    inverse_mat(ICmat, nd_line, &info);
   
   /* the best estimate for average */
-  for(i=0;i<nd_line;i++)Larr[i]=1.0;
-  multiply_matvec(ICmat, Larr, nd_line, ybuf);
-  lambda = cblas_ddot(nd_line, Larr, 1, ybuf, 1);
-  multiply_matvec(ICmat, Fhb, nd_line, ybuf);
-  ave_con = cblas_ddot(nd_line, Larr, 1, ybuf, 1);
-  ave_con /=lambda;
+    for(i=0;i<nd_line;i++)Larr[i]=1.0;
+    multiply_matvec(ICmat, Larr, nd_line, ybuf);
+    lambda = cblas_ddot(nd_line, Larr, 1, ybuf, 1);
+    multiply_matvec(ICmat, Fhb, nd_line, ybuf);
+    ave_con = cblas_ddot(nd_line, Larr, 1, ybuf, 1);
+    ave_con /=lambda;
 //  printf("%f\n", ave_con);
 
 /* get the probability */
-  for(i=0;i<nd_line;i++)Larr[i] = Fhb[i] - ave_con;
-  multiply_matvec(ICmat, Larr, nd_line, ybuf);
-  prob2 = -0.5 * cblas_ddot(nd_line, Larr, 1, ybuf, 1);
+    for(i=0;i<nd_line;i++)Larr[i] = Fhb[i] - ave_con;
+    multiply_matvec(ICmat, Larr, nd_line, ybuf);
+    prob2 = -0.5 * cblas_ddot(nd_line, Larr, 1, ybuf, 1);
 
-  lndet = lndet_mat(Cmat, nd_line, &info);
-  lndet_n = lndet_mat(Nmat, nd_line, &info);
-  lndet_n0 = lndet_mat(N0mat, nd_line, &info);
+    lndet = lndet_mat(Cmat, nd_line, &info);
+    lndet_n = lndet_mat(Nmat, nd_line, &info);
+    lndet_n0 = lndet_mat(N0mat, nd_line, &info);
 //  lndet = det_mat(Cmat, nlist, &info);
 //  eigen_sym_mat(Cmat, nlist, Larr, &info);
 //  det = 1.0;
 //  for(i=0;i<nlist;i++)det *=Larr[i];
-  prob2 = prob2 - 0.5*lndet - 0.5*log(lambda) + 0.5 * (lndet_n - lndet_n0);
+    prob2 = prob2 - 0.5*lndet - 0.5*log(lambda) + 0.5 * (lndet_n - lndet_n0);
 //  prob = prob - 0.5*log(lndet);
+  }
 
   prior_phi = 1.0;
   for(i=1; i<ncode; i++)
@@ -592,7 +595,7 @@ double prob_variability(double *var_con, double *var_hb)
  */
 double prob_variability_beta(double *var_con, double *var_hb, double beta)
 {
-  double prob, prob1, prob2, lambda, ave_con, lndet, sigma, tau, alpha;
+  double prob, prob1=0.0, prob2=0.0, lambda, ave_con, lndet, sigma, tau, alpha;
   double lndet_n, lndet_n0, prior_phi;
   double * ybuf, * Larr;
   int i, info;
@@ -637,45 +640,48 @@ double prob_variability_beta(double *var_con, double *var_hb, double beta)
 //  for(i=0;i<nlist;i++)det *=Larr[i];
   prob1 = prob1 - 0.5*lndet - 0.5*log(lambda) + 0.5 * (lndet_n - lndet_n0);
 //  prob = prob - 0.5*log(lndet);
-
-  sigma = var_hb[0];
-  tau = var_hb[1];
-  alpha = var_hb[2];
-
-  set_covar_mat_hb(sigma, tau, alpha);
   
-  for(i=0;i<nd_line*nd_line; i++)
+  if(parset.flag_line == 1)
   {
-    Cmat[i] = Smat[i] + Nmat[i];
-  }
+    sigma = var_hb[0];
+    tau = var_hb[1];
+    alpha = var_hb[2];
+
+    set_covar_mat_hb(sigma, tau, alpha);
   
-  memcpy(ICmat, Cmat, nd_line*nd_line*sizeof(double));
-  inverse_mat(ICmat, nd_line, &info);
+    for(i=0;i<nd_line*nd_line; i++)
+    {
+      Cmat[i] = Smat[i] + Nmat[i];
+    }
+  
+    memcpy(ICmat, Cmat, nd_line*nd_line*sizeof(double));
+    inverse_mat(ICmat, nd_line, &info);
   
   /* the best estimate for average */
-  for(i=0;i<nd_line;i++)Larr[i]=1.0;
-  multiply_matvec(ICmat, Larr, nd_line, ybuf);
-  lambda = cblas_ddot(nd_line, Larr, 1, ybuf, 1);
-  multiply_matvec(ICmat, Fhb, nd_line, ybuf);
-  ave_con = cblas_ddot(nd_line, Larr, 1, ybuf, 1);
-  ave_con /=lambda;
+    for(i=0;i<nd_line;i++)Larr[i]=1.0;
+    multiply_matvec(ICmat, Larr, nd_line, ybuf);
+    lambda = cblas_ddot(nd_line, Larr, 1, ybuf, 1);
+    multiply_matvec(ICmat, Fhb, nd_line, ybuf);
+    ave_con = cblas_ddot(nd_line, Larr, 1, ybuf, 1);
+    ave_con /=lambda;
 //  printf("%f\n", ave_con);
 
 /* get the probability */
-  for(i=0;i<nd_line;i++)Larr[i] = Fhb[i] - ave_con;
-  multiply_matvec(ICmat, Larr, nd_line, ybuf);
-  prob2 = -0.5 * cblas_ddot(nd_line, Larr, 1, ybuf, 1);
+    for(i=0;i<nd_line;i++)Larr[i] = Fhb[i] - ave_con;
+    multiply_matvec(ICmat, Larr, nd_line, ybuf);
+    prob2 = -0.5 * cblas_ddot(nd_line, Larr, 1, ybuf, 1);
 
-  lndet = lndet_mat(Cmat, nd_line, &info);
-  lndet_n = lndet_mat(Nmat, nd_line, &info);
-  lndet_n0 = lndet_mat(N0mat, nd_line, &info);
+    lndet = lndet_mat(Cmat, nd_line, &info);
+    lndet_n = lndet_mat(Nmat, nd_line, &info);
+    lndet_n0 = lndet_mat(N0mat, nd_line, &info);
 //  lndet = det_mat(Cmat, nlist, &info);
 //  eigen_sym_mat(Cmat, nlist, Larr, &info);
 //  det = 1.0;
 //  for(i=0;i<nlist;i++)det *=Larr[i];
-  prob2 = prob2 - 0.5*lndet - 0.5*log(lambda) + 0.5 * (lndet_n - lndet_n0);
+    prob2 = prob2 - 0.5*lndet - 0.5*log(lambda) + 0.5 * (lndet_n - lndet_n0);
 //  prob = prob - 0.5*log(lndet);
-
+  }
+  
   prior_phi = 1.0;
   for(i=1; i<ncode; i++)
   {

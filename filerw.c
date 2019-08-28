@@ -167,11 +167,13 @@ int read_dataset()
   }
   nd_cont = ic;
   ncode = idx;
-  printf("%d %d\n", ic, idx); 
+  printf("Cont points: %d, codes: %d\n", ic, idx); 
   fclose(fcont);
 
   
   //read line
+  if(parset.flag_line == 1)
+  {
   fline =fopen(parset.file_line, "r");
   if(fline==NULL)
   {
@@ -225,10 +227,10 @@ int read_dataset()
 
   nd_line = ic;
   ncode = idx;
-  printf("%d %d\n", ic, idx); 
+  printf("Line points: %d, codes: %d\n", ic, idx); 
   fclose(fline);
+  }
 
-//  exit(-1);
 }
 
 
@@ -275,6 +277,14 @@ void read_parset()
       fprintf(stderr, "# Error: Cannot open file %s\n", fname);
       exit(-1);
     }
+
+
+    /* set default configurations */
+    strcpy(parset.file_cont, "");
+    strcpy(parset.file_line, "");
+    parset.flag_line = 0;
+    parset.n_mcmc = 100000;
+    parset.n_builtin = 50000;
 
     while(!feof(fparam))
     {
@@ -327,6 +337,17 @@ void read_parset()
   {
     printf("# n_mcmc should be larger than n_builtin.\n");
     exit(0);
+  }
+
+  if((strcmp(parset.file_line, "")==0) & (strcmp(parset.file_cont, "")==0))
+  {
+    fprintf(stderr, "Please specify data filename in %s with the following format:\n FileCont   xxxx\n FileLine   xxxx\n", parset.file_param);
+    exit(-1);
+  }
+  
+  if(strcmp(parset.file_line, "")!=0)
+  {
+    parset.flag_line = 1;
   }
   return;
 }

@@ -60,6 +60,8 @@ typedef struct
 
   int n_mcmc, n_builtin;
 
+  int flag_line;
+
 }PARSET;
 extern PARSET parset;
 

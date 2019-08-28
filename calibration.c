@@ -17,9 +17,12 @@ int calibrate()
   mcmc_stats();
 
   printf("%f\t%f\t%f\n", var_con_best[0], var_con_best[1], var_con_best[2]);
-  printf("%f\t%f\t%f\n", var_hb_best[0], var_hb_best[1], var_hb_best[2]);
-
   reconstruct_con(var_con_best);
-  reconstruct_hb(var_hb_best);
+
+  if(parset.flag_line == 1)
+  {
+    printf("%f\t%f\t%f\n", var_hb_best[0], var_hb_best[1], var_hb_best[2]);
+    reconstruct_hb(var_hb_best);
+  }
 }
 
