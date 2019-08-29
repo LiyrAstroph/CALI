@@ -27,8 +27,8 @@ int reconstruct_con(double *var_con)
   Lmat = array_malloc(nd_cont*nd_cont);
   Vmat = array_malloc(nd_cont*nd_cont);
 
-  sigma = var_con[0];
   tau = var_con[1];
+  sigma = var_con[0] * sqrt(tau);
   alpha = var_con[2];
   
   printf("%f\t%f\t%f\n", sigma, tau, alpha);
@@ -101,8 +101,8 @@ int reconstruct_hb(double *var_hb)
   Lmat = array_malloc(nd_line*nd_line);
   Vmat = array_malloc(nd_line*nd_line);
 
-  sigma = var_hb[0];
   tau = var_hb[1];
+  sigma = var_hb[0]*sqrt(tau);
   alpha = var_hb[2];
   
   printf("%f\t%f\t%f\n", sigma, tau, alpha);

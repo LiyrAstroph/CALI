@@ -187,18 +187,18 @@ double lndet_mat(double *a, int n, int *info)
 void Chol_decomp_U(double *a, int n, int *info)
 {
   int i,j;
-  char uplo = 'L';
+  char uplo = 'U';
 //  dpotrf_(&uplo, &n, a, &n, info);
   *info=LAPACKE_dpotrf(LAPACK_ROW_MAJOR, uplo, n, a, n);
   if(*info<0)
   {
     fprintf(stderr, "The %d-th argument had an illegal value!\n", *info);
-    exit(-1);
+    return;
   }
   else if (*info>0)
   {
     fprintf(stderr, "The leading minor of order %d is not positive definite, and the factorization could not be completed.\n", *info);
-    exit(-1);
+    return;
   }
   for(i=0;i<n;i++)
     for(j=0;j<i;j++)

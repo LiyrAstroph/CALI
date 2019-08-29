@@ -50,11 +50,11 @@ int mcmc()
   var_hb[0] = exp(theta[2]);
   var_hb[1] = exp(theta[3]);
   var_hb[3] = 1.0;
-  prob = prob_variability(var_con, var_hb);
+  prob = prob_variability_semi(var_con, var_hb);
   
   istep =0; 
   iaccpt = 0;
-  scale = 1.0;
+  scale = 0.1;
   
   while (istep < n_mcmc)
   {
@@ -84,7 +84,7 @@ int mcmc()
     var_con[1] = exp(theta_new[1]);
     var_hb[0] = exp(theta_new[2]);
     var_hb[1] = exp(theta_new[3]);
-    prob_new = prob_variability(var_con, var_hb);
+    prob_new = prob_variability_semi(var_con, var_hb);
 //    printf("%e %e %e %e\n", prob, prob_new, sigma, tau);
     
     ratio = prob_new - prob;
@@ -195,7 +195,7 @@ int mcmc_pt()
     var_hb[1] = exp(theta[j][3]);
     var_hb[2] = 1.0;
     prob[j] = prob_variability_semi_beta(var_con, var_hb, beta[j]);
-    scale[j] = 1.0;
+    scale[j] = 0.1;
     iaccpt[j] = 0;
   }
   
@@ -353,12 +353,12 @@ void set_mcmc_param(double *theta, double *stepsize, double (*range)[2], int nth
   }
 
   i=0;
-  range[i][0] = log(0.1);
+  range[i][0] = log(0.001);
   range[i++][1] = log(100.0);
   range[i][0] = log(1.0);
   range[i++][1] = log(1.0e4);
 
-  range[i][0] = log(0.1);
+  range[i][0] = log(0.001);
   range[i++][1] = log(100.0);
   range[i][0] = log(1.0);
   range[i++][1] = log(1.0e4);
@@ -366,12 +366,12 @@ void set_mcmc_param(double *theta, double *stepsize, double (*range)[2], int nth
   for(j=0; j<ncode-1; j++)
   {
     range[i][0] = 0.5;
-    range[i++][1] = 1.5;
+    range[i++][1] = 2.0;
   }
   for(j=0; j<ncode-1; j++)
   {
-    range[i][0] = -1.0;
-    range[i++][1] = 1.0;
+    range[i][0] = -2.0;
+    range[i++][1] = 2.0;
   }
 
   if(i!=ntheta)
@@ -526,8 +526,8 @@ double prob_variability(double *var_con, double *var_hb)
   Larr = workspace;
   ybuf = Larr + nd_max;
 
-  sigma = var_con[0];
   tau = var_con[1];
+  sigma = var_con[0] * sqrt(tau);
   alpha = var_con[2];
 
   set_covar_mat_con(sigma, tau, alpha);
@@ -568,8 +568,8 @@ double prob_variability(double *var_con, double *var_hb)
 
   if(parset.flag_line == 1)
   {
-    sigma = var_hb[0];
     tau = var_hb[1];
+    sigma = var_hb[0]*sqrt(tau);
     alpha = var_hb[2];
 
     set_covar_mat_hb(sigma, tau, alpha);
@@ -632,8 +632,8 @@ double prob_variability_beta(double *var_con, double *var_hb, double beta)
   Larr = workspace;
   ybuf = Larr + nd_cont;
 
-  sigma = var_con[0];
   tau = var_con[1];
+  sigma = var_con[0] * sqrt(tau);
   alpha = var_con[2];
 
   set_covar_mat_con(sigma, tau, alpha);
@@ -673,8 +673,8 @@ double prob_variability_beta(double *var_con, double *var_hb, double beta)
   
   if(parset.flag_line == 1)
   {
-    sigma = var_hb[0];
     tau = var_hb[1];
+    sigma = var_hb[0]*sqrt(tau);
     alpha = var_hb[2];
 
     set_covar_mat_hb(sigma, tau, alpha);
@@ -728,7 +728,7 @@ double prob_variability_beta(double *var_con, double *var_hb, double beta)
 /**
  * probability for given variability model parameters.
  */
-double prob_variability_semi_beta(double *var_con, double *var_hb, double beta)
+double prob_variability_semi(double *var_con, double *var_hb)
 {
   double prob, prob1=0.0, prob2=0.0, lambda, ave_con, lndet, sigma, sigma2, tau, alpha;
   double lndet_n, lndet_n0, prior_phi;
@@ -745,9 +745,9 @@ double prob_variability_semi_beta(double *var_con, double *var_hb, double beta)
   Cq = phi + nd_cont;
   yq = Cq + nq*nq;
 
-  sigma = var_con[0];
-  sigma2 = sigma*sigma;
   tau = var_con[1];
+  sigma = var_con[0] * sqrt(tau);
+  sigma2 = sigma*sigma;
   alpha = var_con[2];
   
   for(i=0;i<nd_cont;i++)
@@ -797,8 +797,131 @@ double prob_variability_semi_beta(double *var_con, double *var_hb, double beta)
     Cq = phi + nd_line;
     yq = Cq + nq*nq;
 
-    sigma = var_hb[0];
     tau = var_hb[1];
+    sigma = var_hb[0]*sqrt(tau);
+    alpha = var_hb[2];
+
+    for(i=0;i<nd_line;i++)
+      Larr[i]=1.0;
+
+    compute_semiseparable_drw(date_line, nd_line, sigma2, 1.0/tau, Fhb_err, 0.0, W, D, phi);
+    lndet = 0.0;
+    for(i=0; i<nd_line; i++)
+      lndet += log(D[i]);
+
+    /* calculate L^T*C^-1*L */
+    multiply_mat_semiseparable_drw(Larr, W, D, phi, nd_line, nq, sigma2, Lbuf);
+    multiply_mat_MN_transposeA(Larr, Lbuf, Cq, nq, nq, nd_line);
+
+    /* calculate L^T*C^-1*y */
+    multiply_matvec_semiseparable_drw(Fhb, W, D, phi, nd_line, sigma2, ybuf);
+    multiply_mat_MN_transposeA(Larr, ybuf, yq, nq, 1, nd_line);
+  
+    lambda = Cq[0];
+    ave_con = yq[0]/Cq[0];
+
+    for(i=0;i<nd_line;i++)
+    {
+      ybuf[i] = Fhb[i] - ave_con;
+    }
+    multiply_matvec_semiseparable_drw(ybuf, W, D, phi, nd_line, sigma2, Lbuf);
+    prob2 = -0.5 * cblas_ddot(nd_line, ybuf, 1, Lbuf, 1);
+
+    lndet_n = lndet_n0 = 0.0;
+    for(i=0; i<nd_line; i++)
+    {
+      lndet_n += 2.0*log(Fhb_err[i]);
+      lndet_n0 += 2.0*log(hbb[i][1]);
+    }
+
+    prob2 = prob2 - 0.5*lndet - 0.5*log(lambda) + 0.5 * (lndet_n - lndet_n0);
+  }
+  
+  prior_phi = 1.0;
+  for(i=1; i<ncode; i++)
+  {
+    prior_phi *= ps_scale[i]; 
+  }
+  
+  prob = prob1 + prob2 - log(prior_phi);
+  
+  return prob;
+}
+
+/**
+ * probability for given variability model parameters.
+ */
+double prob_variability_semi_beta(double *var_con, double *var_hb, double beta)
+{
+  double prob, prob1=0.0, prob2=0.0, lambda, ave_con, lndet, sigma, sigma2, tau, alpha;
+  double lndet_n, lndet_n0, prior_phi;
+  double * ybuf, * Larr, *W, *D, *phi, *Cq, *Lbuf, *yq;
+  int i, nq, info;
+
+  nq = 1;
+  Larr = workspace;
+  Lbuf = Larr + nd_cont*nq;
+  ybuf = Lbuf + nd_cont*nq;
+  W = ybuf + nd_cont;
+  D = W + nd_cont;
+  phi = D + nd_cont;
+  Cq = phi + nd_cont;
+  yq = Cq + nq*nq;
+
+  tau = var_con[1];
+  sigma = var_con[0] * sqrt(tau);
+  sigma2 = sigma*sigma;
+  alpha = var_con[2];
+  
+  for(i=0;i<nd_cont;i++)
+    Larr[i]=1.0;
+
+  compute_semiseparable_drw(date_cont, nd_cont, sigma2, 1.0/tau, Fcon_err, 0.0, W, D, phi);
+  lndet = 0.0;
+  for(i=0; i<nd_cont; i++)
+    lndet += log(D[i]);
+
+
+  /* calculate L^T*C^-1*L */
+  multiply_mat_semiseparable_drw(Larr, W, D, phi, nd_cont, nq, sigma2, Lbuf);
+  multiply_mat_MN_transposeA(Larr, Lbuf, Cq, nq, nq, nd_cont);
+
+  /* calculate L^T*C^-1*y */
+  multiply_matvec_semiseparable_drw(Fcon, W, D, phi, nd_cont, sigma2, ybuf);
+  multiply_mat_MN_transposeA(Larr, ybuf, yq, nq, 1, nd_cont);
+  
+  lambda = Cq[0];
+  ave_con = yq[0]/Cq[0];
+
+/* get the probability */
+  for(i=0;i<nd_cont;i++)
+  {
+    ybuf[i] = Fcon[i] - ave_con;
+  }
+  multiply_matvec_semiseparable_drw(ybuf, W, D, phi, nd_cont, sigma2, Lbuf);
+  prob1 = -0.5 * cblas_ddot(nd_cont, ybuf, 1, Lbuf, 1);
+
+  lndet_n = lndet_n0 = 0.0;
+  for(i=0; i<nd_cont; i++)
+  {
+    lndet_n += 2.0*log(Fcon_err[i]);
+    lndet_n0 += 2.0*log(optflux[i][1]);
+  }
+  prob1 = prob1 - 0.5*lndet - 0.5*log(lambda) + 0.5 * (lndet_n - lndet_n0);
+  
+  if(parset.flag_line == 1)
+  {
+    Larr = workspace;
+    Lbuf = Larr + nd_line*nq;
+    ybuf = Lbuf + nd_line*nq;
+    W = ybuf + nd_line;
+    D = W + nd_line;
+    phi = D + nd_line;
+    Cq = phi + nd_line;
+    yq = Cq + nq*nq;
+    
+    tau = var_hb[1];
+    sigma = var_hb[0]*sqrt(tau);
     alpha = var_hb[2];
 
     for(i=0;i<nd_line;i++)
@@ -943,8 +1066,6 @@ void mcmc_stats()
     theta_mean[i] = gsl_stats_mean(&theta[i][0], 1, nstep);
     theta_var[i] = gsl_stats_sd(&theta[i][0], 1, nstep);
   }
-
-  printf("FFF\n");
   
   for(i=0; i<ntheta; i++)
   {

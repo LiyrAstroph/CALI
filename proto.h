@@ -17,6 +17,7 @@ void mcmc_stats();
 void mcmc_memory_init();
 void mcmc_memory_free();
 double prob_variability(double *var_con, double *var_hb);
+double prob_variability_semi(double *var_con, double *var_hb);
 void set_covar_mat_con(double sigma, double tau, double alpha);
 void set_covar_mat_hb(double sigma, double tau, double alpha);
 void scale_flux();
