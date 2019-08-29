@@ -68,4 +68,4 @@ cali: Makefile $(OBJS) proto.h
 	gcc -o $@ $(OBJS) $(CFLAGS) $(LIBS)
 
 clean:
-	rm *.o plot cali
+	rm *.o cali

@@ -32,7 +32,7 @@ extern int *obs_num_cont, *obs_num_line, *code_idx_cont, *code_idx_line;
 extern double *ps_scale, *es_scale, *ps_scale_err, *es_scale_err;;
 
 //
-extern double * Smat, * Nmat, * INmat, * ISmat, * Qmat, * IQmat, * eigens, * eigens_vecs, * eigens_mat, 
+extern double * Smat, * Nmat, * INmat, * ISmat, * Qmat, * IQmat, 
        * Cmat, * ICmat, * N0mat;
 extern double * Fcon, * Fcon_err, * Fhb, *Fhb_err;
 
