@@ -24,6 +24,8 @@ double * Smat, * Nmat, * INmat, * ISmat, * Qmat, * IQmat, * eigens, * eigens_vec
        * Cmat, * ICmat, * N0mat;
 double * Fcon, * Fcon_err, * Fhb, *Fhb_err;
 
+double *workspace;
+
 int n_mcmc, nbuilt;
 int const ntheta_max=50;
 double *cov_matrix;

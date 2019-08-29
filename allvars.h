@@ -36,6 +36,8 @@ extern double * Smat, * Nmat, * INmat, * ISmat, * Qmat, * IQmat, * eigens, * eig
        * Cmat, * ICmat, * N0mat;
 extern double * Fcon, * Fcon_err, * Fhb, *Fhb_err;
 
+extern double *workspace;
+
 extern int n_mcmc, nbuilt;
 extern int const ntheta_max;
 extern double *cov_matrix;

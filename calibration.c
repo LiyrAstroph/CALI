@@ -24,5 +24,6 @@ int calibrate()
     printf("%f\t%f\t%f\n", var_hb_best[0], var_hb_best[1], var_hb_best[2]);
     reconstruct_hb(var_hb_best);
   }
+  mcmc_memory_free();
 }
 

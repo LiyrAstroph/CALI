@@ -479,10 +479,17 @@ void mcmc_memory_init()
   var_hb_best = array_malloc(3*sizeof(double));
   var_hb_best_err = array_malloc(3*sizeof(double));
 
+  workspace = array_malloc(10*nd_max);
+
 //GSL
   gsl_T = gsl_rng_default;
   gsl_r = gsl_rng_alloc (gsl_T);
   gsl_rng_set(gsl_r, time(NULL)); 
+}
+
+void mcmc_memory_free()
+{
+  free(workspace);
 }
 
 /**
@@ -495,8 +502,8 @@ double prob_variability(double *var_con, double *var_hb)
   double * ybuf, * Larr;
   int i, info;
 
-  Larr = array_malloc(nd_max);
-  ybuf = array_malloc(nd_max);
+  Larr = workspace;
+  ybuf = Larr + nd_max;
 
   sigma = var_con[0];
   tau = var_con[1];
@@ -527,14 +534,18 @@ double prob_variability(double *var_con, double *var_hb)
   prob1 = -0.5 * cblas_ddot(nd_cont, Larr, 1, ybuf, 1);
 
   lndet = lndet_mat(Cmat, nd_cont, &info);
-  lndet_n = lndet_mat(Nmat, nd_cont, &info);
-  lndet_n0 = lndet_mat(N0mat, nd_cont, &info);
+//  lndet_n = lndet_mat(Nmat, nd_cont, &info);
+//  lndet_n0 = lndet_mat(N0mat, nd_cont, &info);
 //  lndet = det_mat(Cmat, nlist, &info);
-//  eigen_sym_mat(Cmat, nlist, Larr, &info);
-//  det = 1.0;
-//  for(i=0;i<nlist;i++)det *=Larr[i];
+
+  lndet_n = lndet_n0 = 0.0;
+  for(i=0; i<nd_cont; i++)
+  {
+    lndet_n += 2.0*log(Fcon_err[i]);
+    lndet_n0 += 2.0*log(optflux[i][1]);
+  }
+
   prob1 = prob1 - 0.5*lndet - 0.5*log(lambda) + 0.5 * (lndet_n - lndet_n0);
-//  prob = prob - 0.5*log(lndet);
 
   if(parset.flag_line == 1)
   {
@@ -567,12 +578,14 @@ double prob_variability(double *var_con, double *var_hb)
     prob2 = -0.5 * cblas_ddot(nd_line, Larr, 1, ybuf, 1);
 
     lndet = lndet_mat(Cmat, nd_line, &info);
-    lndet_n = lndet_mat(Nmat, nd_line, &info);
-    lndet_n0 = lndet_mat(N0mat, nd_line, &info);
-//  lndet = det_mat(Cmat, nlist, &info);
-//  eigen_sym_mat(Cmat, nlist, Larr, &info);
-//  det = 1.0;
-//  for(i=0;i<nlist;i++)det *=Larr[i];
+//    lndet_n = lndet_mat(Nmat, nd_line, &info);
+//    lndet_n0 = lndet_mat(N0mat, nd_line, &info);
+    lndet_n = lndet_n0 = 0.0;
+    for(i=0; i<nd_line; i++)
+    {
+      lndet_n += 2.0*log(Fhb_err[i]);
+      lndet_n0 += 2.0*log(hbb[i][1]);
+    }
     prob2 = prob2 - 0.5*lndet - 0.5*log(lambda) + 0.5 * (lndet_n - lndet_n0);
 //  prob = prob - 0.5*log(lndet);
   }
@@ -585,8 +598,6 @@ double prob_variability(double *var_con, double *var_hb)
   
   prob = (prob1 + prob2 - log(prior_phi));
   
-  free(ybuf);
-  free(Larr);
   return prob;
 }
 
@@ -600,8 +611,8 @@ double prob_variability_beta(double *var_con, double *var_hb, double beta)
   double * ybuf, * Larr;
   int i, info;
 
-  Larr = array_malloc(nd_max);
-  ybuf = array_malloc(nd_max);
+  Larr = workspace;
+  ybuf = Larr + nd_cont;
 
   sigma = var_con[0];
   tau = var_con[1];
@@ -632,14 +643,15 @@ double prob_variability_beta(double *var_con, double *var_hb, double beta)
   prob1 = -0.5 * cblas_ddot(nd_cont, Larr, 1, ybuf, 1);
 
   lndet = lndet_mat(Cmat, nd_cont, &info);
-  lndet_n = lndet_mat(Nmat, nd_cont, &info);
-  lndet_n0 = lndet_mat(N0mat, nd_cont, &info);
-//  lndet = det_mat(Cmat, nlist, &info);
-//  eigen_sym_mat(Cmat, nlist, Larr, &info);
-//  det = 1.0;
-//  for(i=0;i<nlist;i++)det *=Larr[i];
+  //lndet_n = lndet_mat(Nmat, nd_cont, &info);
+  //lndet_n0 = lndet_mat(N0mat, nd_cont, &info);
+  lndet_n = lndet_n0 = 0.0;
+  for(i=0; i<nd_cont; i++)
+  {
+    lndet_n += 2.0*log(Fcon_err[i]);
+    lndet_n0 += 2.0*log(optflux[i][1]);
+  }
   prob1 = prob1 - 0.5*lndet - 0.5*log(lambda) + 0.5 * (lndet_n - lndet_n0);
-//  prob = prob - 0.5*log(lndet);
   
   if(parset.flag_line == 1)
   {
@@ -672,14 +684,16 @@ double prob_variability_beta(double *var_con, double *var_hb, double beta)
     prob2 = -0.5 * cblas_ddot(nd_line, Larr, 1, ybuf, 1);
 
     lndet = lndet_mat(Cmat, nd_line, &info);
-    lndet_n = lndet_mat(Nmat, nd_line, &info);
-    lndet_n0 = lndet_mat(N0mat, nd_line, &info);
-//  lndet = det_mat(Cmat, nlist, &info);
-//  eigen_sym_mat(Cmat, nlist, Larr, &info);
-//  det = 1.0;
-//  for(i=0;i<nlist;i++)det *=Larr[i];
+//    lndet_n = lndet_mat(Nmat, nd_line, &info);
+//    lndet_n0 = lndet_mat(N0mat, nd_line, &info);
+    lndet_n = lndet_n0 = 0.0;
+    for(i=0; i<nd_line; i++)
+    {
+      lndet_n += 2.0*log(Fhb_err[i]);
+      lndet_n0 += 2.0*log(hbb[i][1]);
+    }
+
     prob2 = prob2 - 0.5*lndet - 0.5*log(lambda) + 0.5 * (lndet_n - lndet_n0);
-//  prob = prob - 0.5*log(lndet);
   }
   
   prior_phi = 1.0;
@@ -690,8 +704,6 @@ double prob_variability_beta(double *var_con, double *var_hb, double beta)
   
   prob = beta*(prob1 + prob2 - log(prior_phi));
   
-  free(ybuf);
-  free(Larr);
   return prob;
 }
 
