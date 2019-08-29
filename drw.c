@@ -462,10 +462,7 @@ void mcmc_memory_init()
   IQmat = array_malloc(nd_max*nd_max);
   Cmat = array_malloc(nd_max*nd_max);
   ICmat = array_malloc(nd_max*nd_max);
-  eigens_vecs = array_malloc(nd_max*nd_max);
-  eigens = array_malloc(nd_max);
-  eigens_mat = array_malloc(nd_max*nd_max);
-  
+    
   Fcon = array_malloc(nd_max);
   Fcon_err = array_malloc(nd_max);
   Fhb = array_malloc(nd_max);
@@ -489,6 +486,27 @@ void mcmc_memory_init()
 
 void mcmc_memory_free()
 {
+  free(Smat);
+  free(Nmat);
+  free(N0mat);
+  free(Qmat);
+  free(ISmat);
+  free(INmat);
+  free(IQmat);
+  free(Cmat);
+  free(ICmat);
+
+  free(Fcon);
+  free(Fcon_err);
+  free(Fhb);
+  free(Fhb_err);
+
+  free(var_con_best);
+  free(var_con_best_err);
+  free(var_hb_best);
+  free(var_hb_best_err);
+
+  free(cov_matrix);
   free(workspace);
 }
 
@@ -526,7 +544,6 @@ double prob_variability(double *var_con, double *var_hb)
   multiply_matvec(ICmat, Fcon, nd_cont, ybuf);
   ave_con = cblas_ddot(nd_cont, Larr, 1, ybuf, 1);
   ave_con /=lambda;
-//  printf("%f\n", ave_con);
 
 /* get the probability */
   for(i=0;i<nd_cont;i++)Larr[i] = Fcon[i] - ave_con;
@@ -536,7 +553,6 @@ double prob_variability(double *var_con, double *var_hb)
   lndet = lndet_mat(Cmat, nd_cont, &info);
 //  lndet_n = lndet_mat(Nmat, nd_cont, &info);
 //  lndet_n0 = lndet_mat(N0mat, nd_cont, &info);
-//  lndet = det_mat(Cmat, nlist, &info);
 
   lndet_n = lndet_n0 = 0.0;
   for(i=0; i<nd_cont; i++)
@@ -570,7 +586,6 @@ double prob_variability(double *var_con, double *var_hb)
     multiply_matvec(ICmat, Fhb, nd_line, ybuf);
     ave_con = cblas_ddot(nd_line, Larr, 1, ybuf, 1);
     ave_con /=lambda;
-//  printf("%f\n", ave_con);
 
 /* get the probability */
     for(i=0;i<nd_line;i++)Larr[i] = Fhb[i] - ave_con;

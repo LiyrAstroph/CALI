@@ -20,7 +20,7 @@ double *ps_scale, *es_scale, *ps_scale_err, *es_scale_err;
 
 
 // MCMC
-double * Smat, * Nmat, * INmat, * ISmat, * Qmat, * IQmat, * eigens, * eigens_vecs, * eigens_mat, 
+double * Smat, * Nmat, * INmat, * ISmat, * Qmat, * IQmat, 
        * Cmat, * ICmat, * N0mat;
 double * Fcon, * Fcon_err, * Fhb, *Fhb_err;
 
