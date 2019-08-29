@@ -35,5 +35,6 @@ int main(int argc, char *argv[])
   output_optical("cont.txt");
   output_hb("line.txt");
  
+  memory_free();
   return 0;
 }

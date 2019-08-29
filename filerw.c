@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <gsl/gsl_sort.h>
 
 #include "allvars.h"
 #include "proto.h"
@@ -10,44 +11,42 @@ int memory_malloc()
 {
   int i;
 
-  list = malloc(nd_max*sizeof(char *));
-  for(i=0; i<nd_max; i++)
-  {
-    list[i] = malloc(100*sizeof(char));
-  }
-
 // emission line  
   hbb = malloc(nd_max * sizeof(double *));
-  o3b = malloc(nd_max * sizeof(double *));
-  o3n = malloc(nd_max * sizeof(double *));
-  hbn = malloc(nd_max * sizeof(double *));
-  chi2 = malloc(nd_max * sizeof(double));
-
   for(i=0; i<nd_max; i++)
   {
-    hbb[i] = malloc(10*sizeof(double));
-    o3b[i] = malloc(6*sizeof(double));
-    o3n[i] = malloc(6*sizeof(double));
-    hbn[i] = malloc(4*sizeof(double));
+    hbb[i] = malloc(2*sizeof(double));
   }
 
-  o3flux = malloc(nd_max * sizeof(double));
-  o3center = malloc(nd_max * sizeof(double));
+  hbb_org = malloc(nd_max * sizeof(double *));
+  for(i=0; i<nd_max; i++)
+  {
+    hbb_org[i] = malloc(2*sizeof(double));
+  }
 
 // continuum
   optflux = malloc(nd_max * sizeof(double *));
-  optslope = malloc(nd_max * sizeof(double *));
-  chi2opt = malloc(nd_max * sizeof(double));
-  
   for(i=0; i<nd_max; i++)
   {
     optflux[i] = malloc(2*sizeof(double));
-    optslope[i] = malloc(2*sizeof(double));
+  }
+
+  optflux_org = malloc(nd_max * sizeof(double *));
+  for(i=0; i<nd_max; i++)
+  {
+    optflux_org[i] = malloc(2*sizeof(double));
   }
 
 
   date_cont = malloc(nd_max * sizeof(double));
   date_line = malloc(nd_max * sizeof(double));
+
+  date_cont_org = malloc(nd_max * sizeof(double));
+  date_line_org = malloc(nd_max * sizeof(double));
+
+  perm_cont = malloc(nd_max * sizeof(int));
+  perm_line = malloc(nd_max * sizeof(int));
+
   code = malloc(ncode_max * sizeof(char *));
   for(i=0; i<ncode_max; i++)
   {
@@ -57,6 +56,10 @@ int memory_malloc()
   obs_num_line = malloc(ncode_max * sizeof(int));
   code_idx_cont = malloc(nd_max * sizeof(int));
   code_idx_line = malloc(nd_max * sizeof(int));
+
+  code_idx_cont_org = malloc(nd_max * sizeof(int));
+  code_idx_line_org = malloc(nd_max * sizeof(int));
+
   
   ps_scale = malloc(ncode_max * sizeof(double));
   es_scale = malloc(ncode_max * sizeof(double));
@@ -73,6 +76,31 @@ int memory_malloc()
     es_scale_err[i] = 0.0;
   }
   
+}
+
+int memory_free()
+{
+  free(date_cont);
+  free(date_line);
+  free(date_cont_org);
+  free(date_line_org);
+  
+  free(obs_num_cont);
+  free(obs_num_line);
+
+  free(perm_cont);
+  free(perm_line);
+
+  free(code_idx_cont);
+  free(code_idx_line);
+  free(code_idx_cont_org);
+  free(code_idx_line_org);
+
+  free(ps_scale);
+  free(ps_scale_err);
+  free(es_scale);
+  free(es_scale_err);
+
 }
 
 int output_optical(char *fname)
@@ -151,16 +179,14 @@ int read_dataset()
     {
       fgets(str, 300, fcont);
 //      printf("%s\n", str);
-      if(sscanf(str, "%lf %lf %lf\n", &date_cont[ic], &optflux[ic][0], &optflux[ic][1]) < 3)
+      if(sscanf(str, "%lf %lf %lf\n", &date_cont_org[ic], &optflux_org[ic][0], &optflux_org[ic][1]) < 3)
       {
         printf("# Wrong in reading %s.\n", parset.file_cont);
         exit(0);
       }
 //      printf("%lf %lf %lf\n", date[ic], optflux[ic][0], hbb[ic][0]);
-      code_idx_cont[ic] = idx;
+      code_idx_cont_org[ic] = idx;
       
-      optflux[ic][0] *= (o3flux_std);
-      optflux[ic][1] *= (o3flux_std);
       ic++;
     }
     idx++;
@@ -170,7 +196,18 @@ int read_dataset()
   printf("Cont points: %d, codes: %d\n", ic, idx); 
   fclose(fcont);
 
+  // sort over the data 
+  gsl_sort_index(perm_cont, date_cont_org, 1, nd_cont);
+  for(i=0; i<nd_cont; i++)
+  {
+    j = perm_cont[i];
+    date_cont[i] = date_cont_org[j];
+    code_idx_cont[i] = code_idx_cont_org[j];
+    optflux[i][0] = optflux_org[j][0];
+    optflux[i][1] = optflux_org[j][1];
+  }
   
+
   //read line
   if(parset.flag_line == 1)
   {
@@ -203,16 +240,13 @@ int read_dataset()
     {
       fgets(str, 300, fline);
 //      printf("%s\n", str);
-      if(sscanf(str, "%lf %lf %lf\n", &date_line[ic], &hbb[ic][0], &hbb[ic][1]) < 3)
+      if(sscanf(str, "%lf %lf %lf\n", &date_line_org[ic], &hbb_org[ic][0], &hbb_org[ic][1]) < 3)
       {
         printf("# Wrong in reading %s.\n", parset.file_line);
         exit(0);
       }
 //      printf("%lf %lf %lf\n", date[ic], optflux[ic][0], hbb[ic][0]);
-      code_idx_line[ic] = idx;
-
-      hbb[ic][0] *= o3flux_std;
-      hbb[ic][1] *= o3flux_std;
+      code_idx_line_org[ic] = idx;
 
       ic++;
     }
@@ -229,6 +263,18 @@ int read_dataset()
   ncode = idx;
   printf("Line points: %d, codes: %d\n", ic, idx); 
   fclose(fline);
+
+  // sort over the data 
+  gsl_sort_index(perm_line, date_line_org, 1, nd_line);
+  for(i=0; i<nd_line; i++)
+  {
+    j = perm_line[i];
+    date_line[i] = date_line_org[j];
+    code_idx_line[i] = code_idx_line_org[j];
+    hbb[i][0] = hbb_org[j][0];
+    hbb[i][1] = hbb_org[j][1];
+  }
+
   }
 
 }

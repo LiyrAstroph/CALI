@@ -15,19 +15,17 @@
 #define  flux1  (1.0/3.0)
 
 extern const int nd_max, ncode_max;
-extern char **list;
-extern double *o3flux, *o3center;
 extern int ncode, nd_cont, nd_line;
 
-extern const double o3flux_std;  // in a unit of 1.0e-14 erg/s
-
-extern double **hbb, **o3b, **o3n, **hbn, **optflux, **optslope;
-extern double *chi2, *chi2opt;
+extern double **hbb, **optflux;
 
 extern double *date_cont, *date_line;
+extern double *date_cont_org, *date_line_org, **optflux_org, **hbb_org;
+extern size_t *perm_cont, *perm_line;
 
 extern char **code;
 extern int *obs_num_cont, *obs_num_line, *code_idx_cont, *code_idx_line;
+extern int *code_idx_cont_org, *code_idx_line_org;
 
 extern double *ps_scale, *es_scale, *ps_scale_err, *es_scale_err;;
 
@@ -35,6 +33,7 @@ extern double *ps_scale, *es_scale, *ps_scale_err, *es_scale_err;;
 extern double * Smat, * Nmat, * INmat, * ISmat, * Qmat, * IQmat, 
        * Cmat, * ICmat, * N0mat;
 extern double * Fcon, * Fcon_err, * Fhb, *Fhb_err;
+
 
 extern double *workspace;
 

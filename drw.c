@@ -194,7 +194,7 @@ int mcmc_pt()
     var_hb[0] = exp(theta[j][2]);
     var_hb[1] = exp(theta[j][3]);
     var_hb[2] = 1.0;
-    prob[j] = prob_variability_beta(var_con, var_hb, beta[j]);
+    prob[j] = prob_variability_semi_beta(var_con, var_hb, beta[j]);
     scale[j] = 1.0;
     iaccpt[j] = 0;
   }
@@ -230,7 +230,7 @@ int mcmc_pt()
       var_con[1] = exp(theta_new[j][1]);
       var_hb[0] = exp(theta_new[j][2]);
       var_hb[1] = exp(theta_new[j][3]);
-      prob_new[j] = prob_variability_beta(var_con, var_hb, beta[j]);
+      prob_new[j] = prob_variability_semi_beta(var_con, var_hb, beta[j]);
 
       ratio = prob_new[j]- prob[j] ;
       if(ratio>0.0)
@@ -266,7 +266,7 @@ int mcmc_pt()
       var_hb1[2] = 1.0;
       set_scale(theta[ibeta+1]);
       scale_flux();
-      prob1 = prob_variability_beta(var_con1, var_hb1, beta[ibeta]);
+      prob1 = prob_variability_semi_beta(var_con1, var_hb1, beta[ibeta]);
 
       var_con2[0] = exp(theta[ibeta][0]);
       var_con2[1] = exp(theta[ibeta][1]);
@@ -276,7 +276,7 @@ int mcmc_pt()
       var_hb2[2] = 1.0;
       set_scale(theta[ibeta]);
       scale_flux();
-      prob2 = prob_variability_beta(var_con2, var_hb2, beta[ibeta+1]);
+      prob2 = prob_variability_semi_beta(var_con2, var_hb2, beta[ibeta+1]);
      
       ratio = ( prob1 + prob2 ) -( prob[ibeta] + prob[ibeta+1] );
       
@@ -297,12 +297,15 @@ int mcmc_pt()
     for(i=0; i<ntheta; i++)
         theta_mcmc[j][i*n_cov_update + istep%n_cov_update] = theta[j][i];
 
-    fprintf(fmcmc_out, "%d", istep);
-    for(i=0;i<ntheta;i++)
-    {
-      fprintf(fmcmc_out,"\t%f", theta[nbeta-1][i]);
+    if(istep >= nbuilt)
+    { 
+      fprintf(fmcmc_out, "%d", istep);
+      for(i=0;i<ntheta;i++)
+      {
+        fprintf(fmcmc_out,"\t%f", theta[nbeta-1][i]);
+      }
+      fprintf(fmcmc_out, "\n");
     }
-    fprintf(fmcmc_out, "\n");
 
     if(istep%100==0)printf("%d\n", istep);
 
@@ -722,6 +725,128 @@ double prob_variability_beta(double *var_con, double *var_hb, double beta)
   return prob;
 }
 
+/**
+ * probability for given variability model parameters.
+ */
+double prob_variability_semi_beta(double *var_con, double *var_hb, double beta)
+{
+  double prob, prob1=0.0, prob2=0.0, lambda, ave_con, lndet, sigma, sigma2, tau, alpha;
+  double lndet_n, lndet_n0, prior_phi;
+  double * ybuf, * Larr, *W, *D, *phi, *Cq, *Lbuf, *yq;
+  int i, nq, info;
+
+  nq = 1;
+  Larr = workspace;
+  Lbuf = Larr + nd_cont*nq;
+  ybuf = Lbuf + nd_cont*nq;
+  W = ybuf + nd_cont;
+  D = W + nd_cont;
+  phi = D + nd_cont;
+  Cq = phi + nd_cont;
+  yq = Cq + nq*nq;
+
+  sigma = var_con[0];
+  sigma2 = sigma*sigma;
+  tau = var_con[1];
+  alpha = var_con[2];
+  
+  for(i=0;i<nd_cont;i++)
+    Larr[i]=1.0;
+
+  compute_semiseparable_drw(date_cont, nd_cont, sigma2, 1.0/tau, Fcon_err, 0.0, W, D, phi);
+  lndet = 0.0;
+  for(i=0; i<nd_cont; i++)
+    lndet += log(D[i]);
+
+
+  /* calculate L^T*C^-1*L */
+  multiply_mat_semiseparable_drw(Larr, W, D, phi, nd_cont, nq, sigma2, Lbuf);
+  multiply_mat_MN_transposeA(Larr, Lbuf, Cq, nq, nq, nd_cont);
+
+  /* calculate L^T*C^-1*y */
+  multiply_matvec_semiseparable_drw(Fcon, W, D, phi, nd_cont, sigma2, ybuf);
+  multiply_mat_MN_transposeA(Larr, ybuf, yq, nq, 1, nd_cont);
+  
+  lambda = Cq[0];
+  ave_con = yq[0]/Cq[0];
+
+/* get the probability */
+  for(i=0;i<nd_cont;i++)
+  {
+    ybuf[i] = Fcon[i] - ave_con;
+  }
+  multiply_matvec_semiseparable_drw(ybuf, W, D, phi, nd_cont, sigma2, Lbuf);
+  prob1 = -0.5 * cblas_ddot(nd_cont, ybuf, 1, Lbuf, 1);
+
+  lndet_n = lndet_n0 = 0.0;
+  for(i=0; i<nd_cont; i++)
+  {
+    lndet_n += 2.0*log(Fcon_err[i]);
+    lndet_n0 += 2.0*log(optflux[i][1]);
+  }
+  prob1 = prob1 - 0.5*lndet - 0.5*log(lambda) + 0.5 * (lndet_n - lndet_n0);
+  
+  if(parset.flag_line == 1)
+  {
+    Larr = workspace;
+    Lbuf = Larr + nd_line*nq;
+    ybuf = Lbuf + nd_line*nq;
+    W = ybuf + nd_line;
+    D = W + nd_line;
+    phi = D + nd_line;
+    Cq = phi + nd_line;
+    yq = Cq + nq*nq;
+
+    sigma = var_hb[0];
+    tau = var_hb[1];
+    alpha = var_hb[2];
+
+    for(i=0;i<nd_line;i++)
+      Larr[i]=1.0;
+
+    compute_semiseparable_drw(date_line, nd_line, sigma2, 1.0/tau, Fhb_err, 0.0, W, D, phi);
+    lndet = 0.0;
+    for(i=0; i<nd_line; i++)
+      lndet += log(D[i]);
+
+    /* calculate L^T*C^-1*L */
+    multiply_mat_semiseparable_drw(Larr, W, D, phi, nd_line, nq, sigma2, Lbuf);
+    multiply_mat_MN_transposeA(Larr, Lbuf, Cq, nq, nq, nd_line);
+
+    /* calculate L^T*C^-1*y */
+    multiply_matvec_semiseparable_drw(Fhb, W, D, phi, nd_line, sigma2, ybuf);
+    multiply_mat_MN_transposeA(Larr, ybuf, yq, nq, 1, nd_line);
+  
+    lambda = Cq[0];
+    ave_con = yq[0]/Cq[0];
+
+    for(i=0;i<nd_line;i++)
+    {
+      ybuf[i] = Fhb[i] - ave_con;
+    }
+    multiply_matvec_semiseparable_drw(ybuf, W, D, phi, nd_line, sigma2, Lbuf);
+    prob2 = -0.5 * cblas_ddot(nd_line, ybuf, 1, Lbuf, 1);
+
+    lndet_n = lndet_n0 = 0.0;
+    for(i=0; i<nd_line; i++)
+    {
+      lndet_n += 2.0*log(Fhb_err[i]);
+      lndet_n0 += 2.0*log(hbb[i][1]);
+    }
+
+    prob2 = prob2 - 0.5*lndet - 0.5*log(lambda) + 0.5 * (lndet_n - lndet_n0);
+  }
+  
+  prior_phi = 1.0;
+  for(i=1; i<ncode; i++)
+  {
+    prior_phi *= ps_scale[i]; 
+  }
+  
+  prob = beta*(prob1 + prob2 - log(prior_phi));
+  
+  return prob;
+}
 
 void set_covar_mat_con(double sigma, double tau, double alpha)
 {
@@ -790,13 +915,13 @@ void mcmc_stats()
     hd[i] = gsl_histogram_alloc(nh);
   }
   
-  theta = matrix_malloc(ntheta, n_mcmc);
+  theta = matrix_malloc(ntheta, n_mcmc-nbuilt);
   theta_mean = array_malloc(ntheta);
   theta_var = array_malloc(ntheta);
   
   fmcmc = fopen("mcmc.txt", "r");
   nstep = 0;
-  while(!feof(fmcmc) && nstep<n_mcmc-1)
+  while(!feof(fmcmc) && nstep<n_mcmc-nbuilt-1)
   {
     fscanf(fmcmc,"%d", &ip);
     for(i=0; i<ntheta; i++)
@@ -804,10 +929,9 @@ void mcmc_stats()
       fscanf(fmcmc,"%lf", &theta[i][nstep]);
     }
     fscanf(fmcmc,"\n");
-//  printf("%d\t%f\n", ip, theta[0][nstep]);
 
     nstep++;
-    if(nstep>n_mcmc)
+    if(nstep>n_mcmc-nbuilt)
     {
       fprintf(stderr, "nstep > n_mcmc");
       exit(-1);
@@ -816,9 +940,11 @@ void mcmc_stats()
   
   for(i=0; i<ntheta; i++)
   {
-    theta_mean[i] = gsl_stats_mean(&theta[i][nbuilt-1], 1, nstep-nbuilt);
-    theta_var[i] = gsl_stats_sd(&theta[i][nbuilt-1], 1, nstep-nbuilt);
+    theta_mean[i] = gsl_stats_mean(&theta[i][0], 1, nstep);
+    theta_var[i] = gsl_stats_sd(&theta[i][0], 1, nstep);
   }
+
+  printf("FFF\n");
   
   for(i=0; i<ntheta; i++)
   {

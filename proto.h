@@ -7,6 +7,7 @@ int output_optical(char *fname);
 int output_hb(char *fname);
 
 int memory_malloc();
+int memory_free();
 int calibrate();
 
 //mcmc
@@ -27,6 +28,7 @@ void get_cov_matrix(double *theta, int nstep, int ntheta);
 void get_cov_matrix_diag(double *theta, int nstep, int ntheta);
 int read_dataset();
 double prob_variability_beta(double *var_con, double *var_hb, double beta);
+double prob_variability_semi_beta(double *var_con, double *var_hb, double beta);
 
 /* reconstruct */
 void reconstruct_int();

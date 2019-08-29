@@ -4,18 +4,20 @@
 #include "allvars.h"
 
 const int nd_max=2000, ncode_max=100;
-char **list;
-double *o3flux, *o3center;
+
 int ncode, nd_cont, nd_line;
 
-const double o3flux_std = 1.0; //(5.58e-13/1.0e-14);  // in a unit of 1.0e-14 erg/s
+double **hbb, **optflux;
 
-double **hbb, **o3b, **o3n, **hbn, **optflux, **optslope;
-double *chi2, *chi2opt;
 double *date_cont, *date_line;
+double *date_cont_org, *date_line_org, **optflux_org, **hbb_org;
+size_t *perm_cont, *perm_line;
+
 
 char **code;
 int *obs_num_cont, *obs_num_line, *code_idx_cont, *code_idx_line;
+int *code_idx_cont_org, *code_idx_line_org;
+
 double *ps_scale, *es_scale, *ps_scale_err, *es_scale_err;
 
 
