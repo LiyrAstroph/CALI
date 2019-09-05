@@ -3,6 +3,13 @@
 # 
 # if want to turn off some configurations, put '#' in the begining of the lines.
 
+#====================================================
+# file names for continuum data/line data.
+# line data is optional. if no line data, comment the line.
+# note: 1) line data must have the same dataset codes as the continuum.
+#       2) numbers of points of continuum and line for the same dateset can be different
+#       3) data files are formated 
+
 FileCont      ngc5548_cont.txt
 FileLine      ngc5548_line.txt
 
