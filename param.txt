@@ -1,9 +1,26 @@
 # parameter file
 # lines beginning with '#' are regarded as comments and are neglected
-#
+# 
+# if want to turn off some configurations, put '#' in the begining of the lines.
 
 FileCont      ngc5548_cont.txt
 FileLine      ngc5548_line.txt
 
-NMcmc         20000
-NBuiltin      10000
+#====================================================
+# total steps and builtin steps for MCMC sampling.
+# this is optional.
+# if not turned on, the code uses the default values.
+
+NMcmc         300000
+NBuiltin      100000
+
+#====================================================
+# prior range for scaling and shifting parameters.
+# this is optional.
+# if not turned on, the code uses the default priors. 
+
+#ScaleRangeLow  0.5    
+#ScaleRangeUp   1.5
+
+#ShiftRangeLow  -1.0
+#ShiftRangeUp   1.0

@@ -33,6 +33,7 @@ double prob_variability_semi_beta(double *var_con, double *var_hb, double beta);
 
 /* reconstruct */
 void reconstruct_int();
+void reconstruct_end();
 int reconstruct_con(double *var_con);
 int reconstruct_hb(double *var_hb);
 void set_covar_Umat_con(double sigma, double tau, double alpha);
@@ -66,3 +67,5 @@ void compute_semiseparable_drw(double *t, int n, double a1, double c1, double *s
 void multiply_matvec_semiseparable_drw(double *y, double  *W, double *D, double *phi, int n, double a1, double *z);
 void multiply_mat_semiseparable_drw(double *Y, double  *W, double *D, double *phi, int n, int m, double a1, double *Z);
 void multiply_mat_transposeB_semiseparable_drw(double *Y, double  *W, double *D, double *phi, int n, int m, double a1, double *Z);
+double mod(double y, double x);
+void wrap(double *x, double min, double max);

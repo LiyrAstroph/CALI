@@ -206,75 +206,79 @@ int read_dataset()
     optflux[i][0] = optflux_org[j][0];
     optflux[i][1] = optflux_org[j][1];
   }
+  ndrw = 1;
+  date_span_cont = date_cont[nd_cont-1] - date_cont[0];
   
 
   //read line
   if(parset.flag_line == 1)
   {
-  fline =fopen(parset.file_line, "r");
-  if(fline==NULL)
-  {
-    printf("cannot open file %s\n", parset.file_line);
-    exit(-1);
-  }
+    fline =fopen(parset.file_line, "r");
+    if(fline==NULL)
+    {
+      printf("cannot open file %s\n", parset.file_line);
+      exit(-1);
+    }
   
-  idx = 0;
-  ic = 0;
-  for(i=0; i<nd_max; i++)
-  {
-    fgets(str, 300, fline);
-    if(feof(fline))
-      break;
-    if(sscanf(str, "# %s %d\n", strcode, &obs_num_line[idx]) < 2)
-    {
-      printf("# Wrong in reading %s.\n", parset.file_line);
-      exit(0);
-    }
-    if(strcmp(strcode, code[idx]) !=0)
-    {
-      printf("# code of line %s is different from cont %s\n", strcode, code[idx]);
-      exit(0);
-    }
-    printf("# %s %d\n", code[idx], obs_num_line[idx]);
-    for(j=0; j<obs_num_line[idx]; j++)
+    idx = 0;
+    ic = 0;
+    for(i=0; i<nd_max; i++)
     {
       fgets(str, 300, fline);
-//      printf("%s\n", str);
-      if(sscanf(str, "%lf %lf %lf\n", &date_line_org[ic], &hbb_org[ic][0], &hbb_org[ic][1]) < 3)
+      if(feof(fline))
+        break;
+      if(sscanf(str, "# %s %d\n", strcode, &obs_num_line[idx]) < 2)
       {
         printf("# Wrong in reading %s.\n", parset.file_line);
         exit(0);
       }
+      if(strcmp(strcode, code[idx]) !=0)
+      {
+        printf("# code of line %s is different from cont %s\n", strcode, code[idx]);
+        exit(0);
+      }
+      printf("# %s %d\n", code[idx], obs_num_line[idx]);
+      for(j=0; j<obs_num_line[idx]; j++)
+      {
+        fgets(str, 300, fline);
+//        printf("%s\n", str);
+        if(sscanf(str, "%lf %lf %lf\n", &date_line_org[ic], &hbb_org[ic][0], &hbb_org[ic][1]) < 3)
+        {
+          printf("# Wrong in reading %s.\n", parset.file_line);
+          exit(0);
+        }
 //      printf("%lf %lf %lf\n", date[ic], optflux[ic][0], hbb[ic][0]);
-      code_idx_line_org[ic] = idx;
+        code_idx_line_org[ic] = idx;
 
-      ic++;
+        ic++;
+      }
+      idx++;
     }
-    idx++;
-  }
 
-  if(idx != ncode)
-  {
-    printf("# Numbers of codes for cont and line are not same: %d %d!\n", ncode, idx);
-    exit(0);
-  }
+    if(idx != ncode)
+    {
+      printf("# Numbers of codes for cont and line are not same: %d %d!\n", ncode, idx);
+      exit(0);
+    }
 
-  nd_line = ic;
-  ncode = idx;
-  printf("Line points: %d, codes: %d\n", ic, idx); 
-  fclose(fline);
+    nd_line = ic;
+    ncode = idx;
+    printf("Line points: %d, codes: %d\n", ic, idx); 
+    fclose(fline);
 
   // sort over the data 
-  gsl_sort_index(perm_line, date_line_org, 1, nd_line);
-  for(i=0; i<nd_line; i++)
-  {
-    j = perm_line[i];
-    date_line[i] = date_line_org[j];
-    code_idx_line[i] = code_idx_line_org[j];
-    hbb[i][0] = hbb_org[j][0];
-    hbb[i][1] = hbb_org[j][1];
-  }
+    gsl_sort_index(perm_line, date_line_org, 1, nd_line);
+    for(i=0; i<nd_line; i++)
+    {
+      j = perm_line[i];
+      date_line[i] = date_line_org[j];
+      code_idx_line[i] = code_idx_line_org[j];
+      hbb[i][0] = hbb_org[j][0];
+      hbb[i][1] = hbb_org[j][1];
+    }
 
+    ndrw=2;
+    date_span_line = date_line[nd_line-1] - date_cont[0];
   }
 
 }
@@ -313,6 +317,23 @@ void read_parset()
     strcpy(tag[nt], "NBuiltin");
     addr[nt] = &parset.n_builtin;
     id[nt++] = INT;
+
+    strcpy(tag[nt], "ScaleRangeLow");
+    addr[nt] = &parset.scale_range_low;
+    id[nt++] = DOUBLE;
+
+    strcpy(tag[nt], "ScaleRangeUp");
+    addr[nt] = &parset.scale_range_up;
+    id[nt++] = DOUBLE;
+
+    strcpy(tag[nt], "ShiftRangeLow");
+    addr[nt] = &parset.shift_range_low;
+    id[nt++] = DOUBLE;
+
+    strcpy(tag[nt], "ShiftRangeUp");
+    addr[nt] = &parset.shift_range_up;
+    id[nt++] = DOUBLE;
+
     
     char fname[200];
     sprintf(fname, "%s", parset.file_param);
@@ -329,8 +350,13 @@ void read_parset()
     strcpy(parset.file_cont, "");
     strcpy(parset.file_line, "");
     parset.flag_line = 0;
-    parset.n_mcmc = 100000;
-    parset.n_builtin = 50000;
+    parset.n_mcmc = 300000;
+    parset.n_builtin = 100000;
+
+    parset.scale_range_low = 0.5;
+    parset.scale_range_up = 1.5;
+    parset.shift_range_low = -1.0;
+    parset.shift_range_up = 1.0;
 
     while(!feof(fparam))
     {
@@ -373,9 +399,9 @@ void read_parset()
     }
     fclose(fparam);
   
-  if(parset.n_mcmc < 10000 | parset.n_builtin < 10000)
+  if(parset.n_mcmc < 50000 | parset.n_builtin < 50000)
   {
-    printf("# n_mcmc and n_builtin should be larger than 10000. \n");
+    printf("# n_mcmc and n_builtin should be larger than 50000. \n");
     exit(0);
   }
 

@@ -16,14 +16,15 @@ int calibrate()
   mcmc_pt();
   mcmc_stats();
 
-  printf("%f\t%f\t%f\n", var_con_best[0], var_con_best[1], var_con_best[2]);
+  printf("Cont DRW:ln(sigma)=%f\tln(tau)=%f\n", var_con_best[0], var_con_best[1]);
   reconstruct_con(var_con_best);
 
   if(parset.flag_line == 1)
   {
-    printf("%f\t%f\t%f\n", var_hb_best[0], var_hb_best[1], var_hb_best[2]);
+    printf("Line DRW:ln(sigma)=%f\tln(tau)=%f\n", var_hb_best[0], var_hb_best[1]);
     reconstruct_hb(var_hb_best);
   }
+  reconstruct_end();
   mcmc_memory_free();
 }
 

@@ -15,9 +15,10 @@
 #define  flux1  (1.0/3.0)
 
 extern const int nd_max, ncode_max;
-extern int ncode, nd_cont, nd_line;
+extern int ncode, nd_cont, nd_line, ndrw;
 
 extern double **hbb, **optflux;
+extern double date_span_cont, date_span_line;
 
 extern double *date_cont, *date_line;
 extern double *date_cont_org, *date_line_org, **optflux_org, **hbb_org;
@@ -62,6 +63,8 @@ typedef struct
   int n_mcmc, n_builtin;
 
   int flag_line;
+
+  double scale_range_low, scale_range_up, shift_range_low, shift_range_up;
 
 }PARSET;
 extern PARSET parset;

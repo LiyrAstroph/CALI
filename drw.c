@@ -18,7 +18,7 @@ int mcmc()
 {
   FILE *fmcmc_out;
 
-  int const ntheta=4+2*(ncode-1), n_cov_update=10000;
+  int const ntheta=ndrw*2+2*(ncode-1), n_cov_update=20000;
   double theta[ntheta], theta_new[ntheta], stepsize[ntheta], range[ntheta][2];  
   double Pmatrix[ntheta*ntheta], Prandvec[ntheta], Py[ntheta];
   double theta_mcmc[ntheta*n_cov_update];
@@ -47,9 +47,12 @@ int mcmc()
   var_con[0] = exp(theta[0]);
   var_con[1] = exp(theta[1]);
   var_con[3] = 1.0;
-  var_hb[0] = exp(theta[2]);
-  var_hb[1] = exp(theta[3]);
-  var_hb[3] = 1.0;
+  if(parset.flag_line == 1)
+  {
+    var_hb[0] = exp(theta[2]);
+    var_hb[1] = exp(theta[3]);
+    var_hb[3] = 1.0;
+  }
   prob = prob_variability_semi(var_con, var_hb);
   
   istep =0; 
@@ -58,32 +61,27 @@ int mcmc()
   
   while (istep < n_mcmc)
   {
-    flag=1;
-    while(flag)
+   
+    for(i=0; i<ntheta; i++)
     {
-      for(i=0; i<ntheta; i++)
-      {
-        Prandvec[i] = gsl_ran_gaussian(gsl_r, 1.0);
-      }
-      multiply_matvec(Pmatrix, Prandvec, ntheta, Py);
-      flag = 0;
-      for(i=0; i<ntheta; i++)
-      {
-        theta_new[i] = theta[i] + scale  * Py[i];
-        if(theta_new[i]<range[i][0] || theta_new[i] > range[i][1])
-        {
-          flag=1;
-          break;
-        }
-      }
+      Prandvec[i] = gsl_ran_gaussian(gsl_r, 1.0);
+    }
+    multiply_matvec(Pmatrix, Prandvec, ntheta, Py);
+    for(i=0; i<ntheta; i++)
+    {
+      theta_new[i] = theta[i] + scale  * Py[i];
+      wrap(&theta_new[i], range[i][0], range[i][1]);
     }
     
     set_scale(theta_new);
     scale_flux();
     var_con[0] = exp(theta_new[0]);
     var_con[1] = exp(theta_new[1]);
-    var_hb[0] = exp(theta_new[2]);
-    var_hb[1] = exp(theta_new[3]);
+    if(parset.flag_line == 1)
+    {
+      var_hb[0] = exp(theta_new[2]);
+      var_hb[1] = exp(theta_new[3]);
+    }
     prob_new = prob_variability_semi(var_con, var_hb);
 //    printf("%e %e %e %e\n", prob, prob_new, sigma, tau);
     
@@ -135,10 +133,10 @@ int mcmc_pt()
 {
 
   FILE *fmcmc_out;
-
-  int const ntheta=4+2*(ncode-1), n_cov_update=10000, nbeta=5;
   
-  double const fswap = 1.0/50.0;
+  int const ntheta=ndrw*2+2*(ncode-1), n_cov_update=20000, nbeta=10;
+  
+  double const fswap = 1.0/200.0;
   double beta[nbeta], beta_min=1.0e-1, beta_max=1.0, dbeta;
   double ubeta;
   int ibeta;
@@ -159,7 +157,7 @@ int mcmc_pt()
   for(j=0; j<nbeta; j++)
   {
     beta[j] = beta_min + j*dbeta;
-    printf("%f\n", beta[j]);
+    //printf("%f\n", beta[j]);
   }
 
   set_mcmc_param(theta[0], stepsize[0], range, ntheta);
@@ -191,9 +189,12 @@ int mcmc_pt()
     var_con[0] = exp(theta[j][0]);
     var_con[1] = exp(theta[j][1]);
     var_con[2] = 1.0;
-    var_hb[0] = exp(theta[j][2]);
-    var_hb[1] = exp(theta[j][3]);
-    var_hb[2] = 1.0;
+    if(parset.flag_line == 1)
+    {
+      var_hb[0] = exp(theta[j][2]);
+      var_hb[1] = exp(theta[j][3]);
+      var_hb[2] = 1.0;
+    }
     prob[j] = prob_variability_semi_beta(var_con, var_hb, beta[j]);
     scale[j] = 0.1;
     iaccpt[j] = 0;
@@ -204,32 +205,27 @@ int mcmc_pt()
   {
     for(j=0; j<nbeta; j++)
     {
-      flag=1;
-      while(flag)
+    
+      for(i=0; i<ntheta; i++)
       {
-        for(i=0; i<ntheta; i++)
-        {
-          Prandvec[j][i] = gsl_ran_gaussian(gsl_r, 1.0);
-        }
-        multiply_matvec(Pmatrix[j], Prandvec[j], ntheta, Py);
-        flag = 0;
-        for(i=0; i<ntheta; i++)
-        {
-          theta_new[j][i] = theta[j][i] + scale[j]   * Py[i];
-          if(theta_new[j][i]<range[i][0] || theta_new[j][i] > range[i][1])
-          {
-            flag=1;
-            break;
-          }
-        }
+        Prandvec[j][i] = gsl_ran_gaussian(gsl_r, 1.0);
+      }
+      multiply_matvec(Pmatrix[j], Prandvec[j], ntheta, Py);
+      for(i=0; i<ntheta; i++)
+      {
+        theta_new[j][i] = theta[j][i] + scale[j]   * Py[i];
+        wrap(&theta_new[j][i], range[i][0], range[i][1]);
       }
 
       set_scale(theta_new[j]);
       scale_flux();
       var_con[0] = exp(theta_new[j][0]);
       var_con[1] = exp(theta_new[j][1]);
-      var_hb[0] = exp(theta_new[j][2]);
-      var_hb[1] = exp(theta_new[j][3]);
+      if(parset.flag_line == 1)
+      {
+        var_hb[0] = exp(theta_new[j][2]);
+        var_hb[1] = exp(theta_new[j][3]);
+      }
       prob_new[j] = prob_variability_semi_beta(var_con, var_hb, beta[j]);
 
       ratio = prob_new[j]- prob[j] ;
@@ -261,9 +257,12 @@ int mcmc_pt()
       var_con1[0] = exp(theta[ibeta+1][0]);
       var_con1[1] = exp(theta[ibeta+1][1]);
       var_con1[2] = 1.0;
-      var_hb1[0] = exp(theta[ibeta+1][2]);
-      var_hb1[1] = exp(theta[ibeta+1][3]);
-      var_hb1[2] = 1.0;
+      if(parset.flag_line == 1)
+      {
+        var_hb1[0] = exp(theta[ibeta+1][2]);
+        var_hb1[1] = exp(theta[ibeta+1][3]);
+        var_hb1[2] = 1.0;
+      }
       set_scale(theta[ibeta+1]);
       scale_flux();
       prob1 = prob_variability_semi_beta(var_con1, var_hb1, beta[ibeta]);
@@ -271,9 +270,12 @@ int mcmc_pt()
       var_con2[0] = exp(theta[ibeta][0]);
       var_con2[1] = exp(theta[ibeta][1]);
       var_con2[2] = 1.0;
-      var_hb2[0] = exp(theta[ibeta][2]);
-      var_hb2[1] = exp(theta[ibeta][3]);
-      var_hb2[2] = 1.0;
+      if(parset.flag_line == 1)
+      {
+        var_hb2[0] = exp(theta[ibeta][2]);
+        var_hb2[1] = exp(theta[ibeta][3]);
+        var_hb2[2] = 1.0;
+      }
       set_scale(theta[ibeta]);
       scale_flux();
       prob2 = prob_variability_semi_beta(var_con2, var_hb2, beta[ibeta+1]);
@@ -294,7 +296,7 @@ int mcmc_pt()
     }
     
     for(j=0; j<nbeta; j++)
-    for(i=0; i<ntheta; i++)
+      for(i=0; i<ntheta; i++)
         theta_mcmc[j][i*n_cov_update + istep%n_cov_update] = theta[j][i];
 
     if(istep >= nbuilt)
@@ -307,7 +309,7 @@ int mcmc_pt()
       fprintf(fmcmc_out, "\n");
     }
 
-    if(istep%100==0)printf("%d\n", istep);
+    if(istep%1000==0)printf("step %d\n", istep);
 
     istep++;
 
@@ -331,11 +333,49 @@ void set_mcmc_param(double *theta, double *stepsize, double (*range)[2], int nth
   int i, j;
 
   i=0;
-  theta[i++] = log(1.0);   // log sigma
-  theta[i++] = log(3000.0);   // log tau
+  range[i][0] = log(0.001);
+  range[i++][1] = log(10.0);
+  range[i][0] = log(10.0);
+  range[i++][1] = log(date_span_cont);
 
-  theta[i++] = log(1.0);   // log sigma
-  theta[i++] = log(3000.0);   // log tau
+  if(parset.flag_line == 1)
+  {
+    range[i][0] = log(0.001);
+    range[i++][1] = log(10.0);
+    range[i][0] = log(10.0);
+    range[i++][1] = log(date_span_line);
+  }
+
+  for(j=0; j<ncode-1; j++)
+  {
+    range[i][0] = parset.scale_range_low;
+    range[i++][1] = parset.scale_range_up;
+  }
+  for(j=0; j<ncode-1; j++)
+  {
+    range[i][0] = parset.shift_range_low;
+    range[i++][1] = parset.shift_range_up;
+  }
+
+  if(i!=ntheta)
+  {
+    printf("Wrong in set_mcmc_param()!\n");
+    exit(-1);
+  }
+
+  i=0;
+  theta[i] = (range[i][0] + range[i][1])*0.5;   // log sigma
+  i++;
+  theta[i] = (range[i][0] + range[i][1])*0.5;   // log tau
+  i++;
+  
+  if(parset.flag_line == 1)
+  {
+    theta[i] = (range[i][0] + range[i][1])*0.5;   // log sigma
+    i++;
+    theta[i] = (range[i][0] + range[i][1])*0.5;   // log tau
+    i++;
+  }
   
   for(j=0; j<ncode-1; j++)
   {
@@ -348,43 +388,20 @@ void set_mcmc_param(double *theta, double *stepsize, double (*range)[2], int nth
   
   if(i!=ntheta)
   {
-    printf("Wrong in set_mcmc_param_1D()!\n");
+    printf("Wrong in set_mcmc_param()!\n");
     exit(-1);
   }
 
-  i=0;
-  range[i][0] = log(0.001);
-  range[i++][1] = log(100.0);
-  range[i][0] = log(1.0);
-  range[i++][1] = log(1.0e4);
-
-  range[i][0] = log(0.001);
-  range[i++][1] = log(100.0);
-  range[i][0] = log(1.0);
-  range[i++][1] = log(1.0e4);
-  
-  for(j=0; j<ncode-1; j++)
-  {
-    range[i][0] = 0.5;
-    range[i++][1] = 2.0;
-  }
-  for(j=0; j<ncode-1; j++)
-  {
-    range[i][0] = -2.0;
-    range[i++][1] = 2.0;
-  }
-
-  if(i!=ntheta)
-  {
-    printf("Wrong in set_mcmc_param_1D()!\n");
-    exit(-1);
-  }
 
   i=0;
   stepsize[i++] = 0.1;
   stepsize[i++] = 0.1;
-  stepsize[i++] = 0.1;
-  stepsize[i++] = 0.1;
+
+  if(parset.flag_line == 1)
+  {
+    stepsize[i++] = 0.1;
+    stepsize[i++] = 0.1;
+  }
 
   for(j=0; j<ncode-1; j++)
   {
@@ -397,7 +414,7 @@ void set_mcmc_param(double *theta, double *stepsize, double (*range)[2], int nth
   
   if(i!=ntheta)
   {
-    printf("Wrong in set_mcmc_param_1D()!\n");
+    printf("Wrong in set_mcmc_param()!\n");
     exit(-1);
   }
 }
@@ -422,11 +439,15 @@ void scale_flux()
     Fcon[i] = optflux[i][0] * ps_scale[idx] - es_scale[idx];
     Fcon_err[i] = optflux[i][1] * ps_scale[idx];
   }
-  for(i=0; i<nd_line; i++)
+
+  if(parset.flag_line == 1)
   {
-    idx = code_idx_line[i];
-    Fhb[i] = hbb[i][0] * ps_scale[idx];
-    Fhb_err[i] = hbb[i][1] * ps_scale[idx];
+    for(i=0; i<nd_line; i++)
+    {
+      idx = code_idx_line[i];
+      Fhb[i] = hbb[i][0] * ps_scale[idx];
+      Fhb_err[i] = hbb[i][1] * ps_scale[idx];
+    }
   }
 }
 
@@ -435,8 +456,8 @@ void set_scale(double *theta)
   int i;
   for(i=1; i<ncode; i++)
   {
-    ps_scale[i] = theta[4+i-1];
-    es_scale[i] = theta[4+ncode-1+i-1];
+    ps_scale[i] = theta[ndrw*2+i-1];
+    es_scale[i] = theta[ndrw*2+ncode-1+i-1];
   }
 
 }
@@ -446,8 +467,8 @@ void set_scale_err(double *theta_var)
   int i;
   for(i=1; i<ncode; i++)
   {
-    ps_scale_err[i] = theta_var[4+i-1];
-    es_scale_err[i] = theta_var[4+ncode-1+i-1];
+    ps_scale_err[i] = theta_var[ndrw*2+i-1];
+    es_scale_err[i] = theta_var[ndrw*2+ncode-1+i-1];
   }
 
 }
@@ -1031,7 +1052,7 @@ void mcmc_stats()
   const int nh=100;    
   gsl_histogram **hd;
   
-  ntheta = 4 + 2*(ncode-1);
+  ntheta = ndrw*2 + 2*(ncode-1);
   hd = malloc(ntheta*sizeof(gsl_histogram *));
   for(i=0; i<ntheta; i++)
   {
@@ -1079,7 +1100,7 @@ void mcmc_stats()
   printf("factor:\n");
   for(i=0; i<ncode; i++)
   {
-    printf("%f\t%f\n", ps_scale[i], es_scale[i]);
+    printf("%s\t%f\t%f\n", code[i], ps_scale[i], es_scale[i]);
     fprintf(fout, "%f\t%f\t%f\t%f\t%s\n", ps_scale[i], ps_scale_err[i], 
       es_scale[i], es_scale_err[i], code[i]);
   }
@@ -1088,17 +1109,23 @@ void mcmc_stats()
   {
     var_con_best[i] = exp(theta_mean[i]);
     var_con_best_err[i] = theta_var[i] * var_con_best[i];
-
-    var_hb_best[i] = exp(theta_mean[i+2]);
-    var_hb_best_err[i] = theta_var[i+2] * var_hb_best[i];
   }
   var_con_best[2] = 1.0;
   var_hb_best[2] = 1.0;
-  var_con_best_err[2] = 0.0;
-  var_hb_best_err[2] = 0.0;  
 
-  printf("%f\t%f\t%f\n", var_con_best[0], var_con_best[1], var_con_best[2]);
-  printf("%f\t%f\t%f\n", var_hb_best[0], var_hb_best[1], var_hb_best[2]);
+  if(parset.flag_line == 1)
+  {
+    for(i=0; i<2; i++)
+    {
+      var_hb_best[i] = exp(theta_mean[i+2]);
+      var_hb_best_err[i] = theta_var[i+2] * var_hb_best[i];
+    }
+    var_con_best_err[2] = 0.0;
+    var_hb_best_err[2] = 0.0;  
+  }
+
+  //printf("%f\t%f\t%f\n", var_con_best[0], var_con_best[1], var_con_best[2]);
+  //printf("%f\t%f\t%f\n", var_hb_best[0], var_hb_best[1], var_hb_best[2]);
 
   free(theta);
   free(theta_mean);

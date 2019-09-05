@@ -31,7 +31,7 @@ int reconstruct_con(double *var_con)
   sigma = var_con[0] * sqrt(tau);
   alpha = var_con[2];
   
-  printf("%f\t%f\t%f\n", sigma, tau, alpha);
+  //printf("%f\t%f\t%f\n", sigma, tau, alpha);
 
   set_covar_mat_con(sigma, tau, alpha);
   set_covar_Umat_con(sigma, tau, alpha);
@@ -105,7 +105,7 @@ int reconstruct_hb(double *var_hb)
   sigma = var_hb[0]*sqrt(tau);
   alpha = var_hb[2];
   
-  printf("%f\t%f\t%f\n", sigma, tau, alpha);
+  //printf("%f\t%f\t%f\n", sigma, tau, alpha);
 
   set_covar_mat_hb(sigma, tau, alpha);
   set_covar_Umat_hb(sigma, tau, alpha);
@@ -168,8 +168,11 @@ void reconstruct_int()
   date_recon = array_malloc(n_recon);
   Fcon_recon = array_malloc(n_recon);
   Fcon_err_recon = array_malloc(n_recon);
-  Fhb_recon = array_malloc(n_recon);
-  Fhb_err_recon = array_malloc(n_recon);
+  if(parset.flag_line == 1)
+  {
+    Fhb_recon = array_malloc(n_recon);
+    Fhb_err_recon = array_malloc(n_recon);
+  }
 
   USmat = array_malloc(n_recon*nd_max);
 
@@ -181,23 +184,42 @@ void reconstruct_int()
     date_min = fmin(date_min, date_cont[i]);
   }
 
-  for(i=0; i<nd_line; i++)
+  if(parset.flag_line == 1)
   {
-    date_max = fmax(date_max, date_line[i]);
-    date_min = fmin(date_min, date_line[i]);
+    for(i=0; i<nd_line; i++)
+    {
+      date_max = fmax(date_max, date_line[i]);
+      date_min = fmin(date_min, date_line[i]);
+    }
   }
 
   range = date_max - date_min;
   date_max += 0.1*range;
   date_min -= 0.1*range;
-  printf("%f\t%f\t%f\n", date_max, date_min, range);
+  //printf("%f\t%f\t%f\n", date_max, date_min, range);
 
   dT = (date_max - date_min)/(n_recon-1);
   for(i=0; i<n_recon; i++)
   {
     date_recon[i] = date_min + dT * i;
   }
+  
+  return;
+}
 
+void reconstruct_end()
+{
+  free(date_recon);
+  free(Fcon_recon);
+  free(Fcon_err_recon);
+
+  if(parset.flag_line == 1)
+  {
+    free(Fhb_recon);
+    free(Fhb_err_recon);
+  }
+
+  free(USmat);
   return;
 }
 

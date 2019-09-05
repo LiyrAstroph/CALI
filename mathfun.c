@@ -463,3 +463,26 @@ void get_cov_matrix_diag(double *theta, int nstep, int ntheta)
       cov_matrix[i*ntheta + j] = cov_matrix[j*ntheta + i] = cov;
     }*/
 }
+
+double mod(double y, double x)
+{
+  if(x > 0.0)
+  {
+    return (y/x - floor(y/x))*x;
+  }
+  else if(x == 0.0)
+  {
+    return 0.0;
+  }
+  else
+  {
+    printf("Warning in mod(double, double) %e\n", x);
+    exit(0);
+  }
+  
+}
+
+void wrap(double *x, double min, double max)
+{
+  *x = mod(*x - min, max - min) + min;
+}
