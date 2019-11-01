@@ -20,10 +20,6 @@ OPTIMIZE    = -O2
 endif
 
 ifeq ($(SYSTEM), "Linux")
-#FITS_INC = -I /usr/include/cfitsio
-#FITS_LIB = -lcfitsio
-#PLPLOT_INC = -I/usr/include/plplot
-#PLPLOT_LIB = -lplplotd -lm
 
 GSL_INCL    = $(shell pkg-config --cflags gsl) 
 GSL_LIBS    = $(shell pkg-config --libs gsl)
@@ -40,31 +36,11 @@ LIBS     = $(GSL_LIBS) $(LAPACK_LIBS) $(CBLAS_LIBS) $(PLPLOT_LIB) $(FITS_LIB)
 
 OBJS = main.o allvars.o filerw.o calibration.o mathfun.o drw.o reconstruct.o
 
-filerw.o: filerw.c allvars.h Makefile
-	gcc -c -o $@ $< $(CFLAGS) 
+INCL = proto.h allvars.h version.h
 
-allvars.o: allvars.c allvars.h Makefile
-	gcc -c -o $@ $<	$(CFLAGS) 
-	
-calibration.o: calibration.c allvars.c Makefile
-	gcc -c -o $@ $< $(CFLAGS)
+$(OBJS): $(INCL)
 
-mathfun.o: mathfun.c allvars.h Makefile
-	gcc -c -o $@ $< $(CFLAGS)
-
-drw.o: drw.c allvars.h Makefile
-	gcc -c -o $@ $< $(CFLAGS)
-
-reconstruct.o: reconstruct.c allvars.h Makefile
-	gcc -c -o $@ $< $(CFLAGS)
-
-main.o: main.c allvars.h Makefile
-	gcc -c -o $@ $< $(CFLAGS)
-
-#plot: clea_plot.c Makefile 
-#	gcc -o $@ $< $(CFLAGS) $(LIBS)
-
-cali: Makefile $(OBJS) proto.h
+cali: Makefile $(OBJS) $(INCL)
 	gcc -o $@ $(OBJS) $(CFLAGS) $(LIBS)
 
 clean:
