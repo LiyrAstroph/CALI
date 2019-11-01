@@ -1,0 +1,8 @@
+#ifndef _CALI_VERSION_H
+#define _CALI_VERSION_H
+
+#define CALI_MAJOR_VERSION 0
+#define CALI_MINOR_VERSION 1
+#define CALI_PATCH_VERSION 0
+
+#endif
