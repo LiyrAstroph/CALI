@@ -379,11 +379,11 @@ void set_mcmc_param(double *theta, double *stepsize, double (*range)[2], int nth
   
   for(j=0; j<ncode-1; j++)
   {
-    theta[i++] = 1.0;
+    theta[i++] = sqrt(parset.scale_range_low * parset.scale_range_up);
   }
   for(j=0; j<ncode-1; j++)
   {
-    theta[i++] = 0.0;
+    theta[i++] = 0.5*(parset.shift_range_low + parset.shift_range_up);
   }
   
   if(i!=ntheta)
