@@ -14,7 +14,7 @@ double date_span_cont, date_span_line;
 double *date_cont, *date_line;
 double *date_cont_org, *date_line_org, **optflux_org, **hbb_org;
 size_t *perm_cont, *perm_line;
-
+double flux_mean_cont, flux_mean_line;
 
 char **code;
 int *obs_num_cont, *obs_num_line, *code_idx_cont, *code_idx_line;

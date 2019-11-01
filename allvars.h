@@ -23,6 +23,7 @@ extern double date_span_cont, date_span_line;
 extern double *date_cont, *date_line;
 extern double *date_cont_org, *date_line_org, **optflux_org, **hbb_org;
 extern size_t *perm_cont, *perm_line;
+extern double flux_mean_cont, flux_mean_line;
 
 extern char **code;
 extern int *obs_num_cont, *obs_num_line, *code_idx_cont, *code_idx_line;

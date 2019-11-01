@@ -121,8 +121,8 @@ int output_optical(char *fname)
   for(i=0; i<nd_cont; i++)
   {
     idx = code_idx_cont[i];
-    fprintf(fout, "%f\t%f\t%f\t%s\n", date_cont[i], optflux[i][0] * ps_scale[idx] - es_scale[idx],
-     optflux[i][1]* ps_scale[idx], code[code_idx_cont[i]]);
+    fprintf(fout, "%f\t%f\t%f\t%s\n", date_cont[i], Fcon[i]*flux_mean_cont,
+                                      Fcon_err[i]*flux_mean_cont, code[code_idx_cont[i]]);
   }
 
   fclose(fout);
@@ -143,8 +143,8 @@ int output_hb(char *fname)
   for(i=0; i<nd_line; i++)
   {
     idx = code_idx_line[i];
-    fprintf(fout, "%f\t%f\t%f\t%s\n", date_line[i], hbb[i][0] * ps_scale[idx], 
-           hbb[i][1]* ps_scale[idx], code[code_idx_line[i]]);
+    fprintf(fout, "%f\t%f\t%f\t%s\n", date_line[i], Fhb[i]*flux_mean_line, 
+                                      Fhb_err[i]*flux_mean_line, code[code_idx_line[i]]);
   }
 
   fclose(fout);
@@ -199,6 +199,13 @@ int read_dataset()
   printf("Cont points: %d, codes: %d\n", ic, idx); 
   fclose(fcont);
 
+  flux_mean_cont = 0.0;
+  idx = 0;
+  for(i=0; i<obs_num_cont[idx]; i++)
+    flux_mean_cont += optflux_org[i][0];
+  flux_mean_cont /= obs_num_cont[idx];
+  printf("Mean cont flux of code %s: %f\n", code[idx], flux_mean_cont);
+
   // sort over the data 
   gsl_sort_index(perm_cont, date_cont_org, 1, nd_cont);
   for(i=0; i<nd_cont; i++)
@@ -206,8 +213,8 @@ int read_dataset()
     j = perm_cont[i];
     date_cont[i] = date_cont_org[j];
     code_idx_cont[i] = code_idx_cont_org[j];
-    optflux[i][0] = optflux_org[j][0];
-    optflux[i][1] = optflux_org[j][1];
+    optflux[i][0] = optflux_org[j][0]/flux_mean_cont;
+    optflux[i][1] = optflux_org[j][1]/flux_mean_cont;
   }
   ndrw = 1;
   date_span_cont = date_cont[nd_cont-1] - date_cont[0];
@@ -269,6 +276,13 @@ int read_dataset()
     printf("Line points: %d, codes: %d\n", ic, idx); 
     fclose(fline);
 
+    flux_mean_line = 0.0;
+    idx = 0;
+    for(i=0; i<obs_num_line[idx]; i++)
+      flux_mean_line += hbb_org[i][0];
+    flux_mean_line /= obs_num_line[idx];
+    printf("Mean line flux of code %s:%f\n", code[idx], flux_mean_line);
+
   // sort over the data 
     gsl_sort_index(perm_line, date_line_org, 1, nd_line);
     for(i=0; i<nd_line; i++)
@@ -276,8 +290,8 @@ int read_dataset()
       j = perm_line[i];
       date_line[i] = date_line_org[j];
       code_idx_line[i] = code_idx_line_org[j];
-      hbb[i][0] = hbb_org[j][0];
-      hbb[i][1] = hbb_org[j][1];
+      hbb[i][0] = hbb_org[j][0]/flux_mean_line;
+      hbb[i][1] = hbb_org[j][1]/flux_mean_line;
     }
 
     ndrw=2;

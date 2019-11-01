@@ -31,10 +31,7 @@ int main(int argc, char *argv[])
   read_dataset();
   
   calibrate();
-  
-  output_optical("cont.txt");
-  output_hb("line.txt");
- 
+   
   memory_free();
   return 0;
 }

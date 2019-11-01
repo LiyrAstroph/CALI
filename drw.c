@@ -437,6 +437,27 @@ void scale_flux()
   {
     idx = code_idx_cont[i];
     Fcon[i] = optflux[i][0] * ps_scale[idx] - es_scale[idx];
+    Fcon_err[i] = optflux[i][1] * ps_scale[idx];
+  }
+
+  if(parset.flag_line == 1)
+  {
+    for(i=0; i<nd_line; i++)
+    {
+      idx = code_idx_line[i];
+      Fhb[i] = hbb[i][0] * ps_scale[idx];
+      Fhb_err[i] = hbb[i][1] * ps_scale[idx];
+    }
+  }
+}
+
+void scale_flux_err()
+{
+  int i, idx;
+  for(i=0; i<nd_cont; i++)
+  {
+    idx = code_idx_cont[i];
+    Fcon[i] = optflux[i][0] * ps_scale[idx] - es_scale[idx];
     //Fcon_err[i] = optflux[i][1] * ps_scale[idx];
     Fcon_err[i] = sqrt(pow(optflux[i][1] * ps_scale[idx], 2.0)
                       +pow(optflux[i][0] * ps_scale_err[idx], 2.0)
@@ -450,7 +471,8 @@ void scale_flux()
     {
       idx = code_idx_line[i];
       Fhb[i] = hbb[i][0] * ps_scale[idx];
-      Fhb_err[i] = hbb[i][1] * ps_scale[idx];
+      Fhb_err[i] = sqrt(pow(hbb[i][1] * ps_scale[idx], 2) 
+                      + pow(hbb[i][0] * ps_scale_err[idx], 2.0) );
     }
   }
 }
@@ -1114,15 +1136,15 @@ void mcmc_stats()
   set_scale(theta_mean);
   set_scale_err(theta_var);
   set_scale_covar(theta_covar);
-  scale_flux();
+  scale_flux_err();
   
   fout = fopen("factor.txt", "w");
   printf("factor:\n");
   for(i=0; i<ncode; i++)
   {
-    printf("%s\t%f\t%f\t%e\n", code[i], ps_scale[i], es_scale[i], pe_scale_covar[i]);
+    printf("%s\t%f\t%f\t%e\n", code[i], ps_scale[i], es_scale[i]*flux_mean_cont, pe_scale_covar[i]*flux_mean_cont);
     fprintf(fout, "%f\t%f\t%f\t%f\t%e\t%s\n", ps_scale[i], ps_scale_err[i], 
-      es_scale[i], es_scale_err[i],  pe_scale_covar[i], code[i]);
+      es_scale[i]*flux_mean_cont, es_scale_err[i]*flux_mean_cont,  pe_scale_covar[i]*flux_mean_cont, code[i]);
   }
   
   for(i=0; i<2; i++)

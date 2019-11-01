@@ -80,7 +80,7 @@ int reconstruct_con(double *var_con)
   fout = fopen("cont_recon.txt", "w");
 
   for(i=0; i<n_recon; i++)
-    fprintf(fout, "%f\t%f\t%f\n", date_recon[i], Fcon_recon[i], Fcon_err_recon[i]);
+    fprintf(fout, "%f\t%f\t%f\n", date_recon[i], Fcon_recon[i] * flux_mean_cont, Fcon_err_recon[i]* flux_mean_cont);
 
   fclose(fout);
   return 0;
@@ -154,7 +154,7 @@ int reconstruct_hb(double *var_hb)
   fout = fopen("line_recon.txt", "w");
 
   for(i=0; i<n_recon; i++)
-    fprintf(fout, "%f\t%f\t%f\n", date_recon[i], Fhb_recon[i], Fhb_err_recon[i]);
+    fprintf(fout, "%f\t%f\t%f\n", date_recon[i], Fhb_recon[i] * flux_mean_line, Fhb_err_recon[i]* flux_mean_line);
 
   fclose(fout);
   return 0;

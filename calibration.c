@@ -16,6 +16,9 @@ int calibrate()
   mcmc_pt();
   mcmc_stats();
 
+  output_optical("cont.txt");
+  output_hb("line.txt");
+
   printf("Cont DRW:ln(sigma)=%f\tln(tau)=%f\n", var_con_best[0], var_con_best[1]);
   reconstruct_con(var_con_best);
 
@@ -25,6 +28,7 @@ int calibrate()
     reconstruct_hb(var_hb_best);
   }
   reconstruct_end();
+
   mcmc_memory_free();
 }
 

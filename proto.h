@@ -21,6 +21,7 @@ double prob_variability_semi(double *var_con, double *var_hb);
 void set_covar_mat_con(double sigma, double tau, double alpha);
 void set_covar_mat_hb(double sigma, double tau, double alpha);
 void scale_flux();
+void scale_flux_err();
 void set_scale_err(double *theta_var);
 void set_scale(double *theta);
 void set_scale_covar(double **theta_covar);
