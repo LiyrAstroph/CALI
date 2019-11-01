@@ -111,7 +111,10 @@ int mcmc()
     fprintf(fmcmc_out, "%d", istep);
     for(i=0;i<ntheta;i++)
     {
-      fprintf(fmcmc_out,"\t%f", theta[i]);
+      if(i<ndrw*2+ncode-1)
+        fprintf(fmcmc_out,"\t%f", theta[i]);
+      else
+        fprintf(fmcmc_out,"\t%f", theta[i]*flux_mean_cont); // account for flux_mean_cont
     }
     fprintf(fmcmc_out, "\n");
 
@@ -304,7 +307,10 @@ int mcmc_pt()
       fprintf(fmcmc_out, "%d", istep);
       for(i=0;i<ntheta;i++)
       {
-        fprintf(fmcmc_out,"\t%f", theta[nbeta-1][i]);
+        if(i<ndrw*2+ncode-1)
+          fprintf(fmcmc_out,"\t%f", theta[nbeta-1][i]);
+        else
+          fprintf(fmcmc_out,"\t%f", theta[nbeta-1][i]*flux_mean_cont); // acount for flux_mean_cont
       }
       fprintf(fmcmc_out, "\n");
     }
@@ -1107,6 +1113,8 @@ void mcmc_stats()
     for(i=0; i<ntheta; i++)
     {
       fscanf(fmcmc,"%lf", &theta[i][nstep]);
+      if(i >= ndrw*2+ncode-1)
+        theta[i][nstep] /= flux_mean_cont; // acount for flux_mean_cont;
     }
     fscanf(fmcmc,"\n");
 

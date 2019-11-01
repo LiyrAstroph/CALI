@@ -205,6 +205,8 @@ int read_dataset()
     flux_mean_cont += optflux_org[i][0];
   flux_mean_cont /= obs_num_cont[idx];
   printf("Mean cont flux of code %s: %f\n", code[idx], flux_mean_cont);
+  parset.shift_range_low /= flux_mean_cont;
+  parset.shift_range_up /= flux_mean_cont;
 
   // sort over the data 
   gsl_sort_index(perm_cont, date_cont_org, 1, nd_cont);
