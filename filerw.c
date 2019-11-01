@@ -66,7 +66,8 @@ int memory_malloc()
 
   ps_scale_err = malloc(ncode_max * sizeof(double));
   es_scale_err = malloc(ncode_max * sizeof(double));
-  
+  pe_scale_covar = malloc(ncode_max * sizeof(double));
+
   for(i=0; i<ncode_max; i++)
   {
     ps_scale[i] = 1.0;
@@ -74,6 +75,8 @@ int memory_malloc()
 
     ps_scale_err[i] = 0.0;
     es_scale_err[i] = 0.0;
+
+    pe_scale_covar[i] = 0.0;
   }
   
 }
@@ -100,7 +103,7 @@ int memory_free()
   free(ps_scale_err);
   free(es_scale);
   free(es_scale_err);
-
+  free(pe_scale_covar);
 }
 
 int output_optical(char *fname)

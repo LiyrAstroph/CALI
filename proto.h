@@ -23,6 +23,7 @@ void set_covar_mat_hb(double sigma, double tau, double alpha);
 void scale_flux();
 void set_scale_err(double *theta_var);
 void set_scale(double *theta);
+void set_scale_covar(double **theta_covar);
 void set_mcmc_param(double *theta, double *stepsize, double (*range)[2], int ntheta);
 void init_cov_matrix(double *stepsize, int ntheta);
 void get_cov_matrix(double *theta, int nstep, int ntheta);

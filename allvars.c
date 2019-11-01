@@ -20,8 +20,7 @@ char **code;
 int *obs_num_cont, *obs_num_line, *code_idx_cont, *code_idx_line;
 int *code_idx_cont_org, *code_idx_line_org;
 
-double *ps_scale, *es_scale, *ps_scale_err, *es_scale_err;
-
+double *ps_scale, *es_scale, *ps_scale_err, *es_scale_err, *pe_scale_covar;
 
 // MCMC
 double * Smat, * Nmat, * INmat, * ISmat, * Qmat, * IQmat, 

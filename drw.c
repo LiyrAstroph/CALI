@@ -437,7 +437,11 @@ void scale_flux()
   {
     idx = code_idx_cont[i];
     Fcon[i] = optflux[i][0] * ps_scale[idx] - es_scale[idx];
-    Fcon_err[i] = optflux[i][1] * ps_scale[idx];
+    //Fcon_err[i] = optflux[i][1] * ps_scale[idx];
+    Fcon_err[i] = sqrt(pow(optflux[i][1] * ps_scale[idx], 2.0)
+                      +pow(optflux[i][0] * ps_scale_err[idx], 2.0)
+                      +pow(es_scale_err[idx], 2.0)
+                      -2.0*optflux[i][0]*pe_scale_covar[idx]);
   }
 
   if(parset.flag_line == 1)
@@ -471,6 +475,15 @@ void set_scale_err(double *theta_var)
     es_scale_err[i] = theta_var[ndrw*2+ncode-1+i-1];
   }
 
+}
+
+void set_scale_covar(double **theta_covar)
+{
+  int i;
+  for(i=1; i<ncode; i++)
+  {
+    pe_scale_covar[i] = theta_covar[ndrw*2+i-1][ndrw*2+ncode-1+i-1];
+  }
 }
 
 void mcmc_memory_init()
@@ -1048,7 +1061,7 @@ void mcmc_stats()
 {
   FILE *fmcmc, *fout;
   int i, j, ip, nstep, ntheta;
-  double **theta, *theta_mean, *theta_var;
+  double **theta, *theta_mean, *theta_var, **theta_covar;
   const int nh=100;    
   gsl_histogram **hd;
   
@@ -1062,6 +1075,7 @@ void mcmc_stats()
   theta = matrix_malloc(ntheta, n_mcmc-nbuilt);
   theta_mean = array_malloc(ntheta);
   theta_var = array_malloc(ntheta);
+  theta_covar = matrix_malloc(ntheta, ntheta);
   
   fmcmc = fopen("mcmc.txt", "r");
   nstep = 0;
@@ -1086,6 +1100,11 @@ void mcmc_stats()
   {
     theta_mean[i] = gsl_stats_mean(&theta[i][0], 1, nstep);
     theta_var[i] = gsl_stats_sd(&theta[i][0], 1, nstep);
+    for(j=0; j<i; j++)
+    {
+      theta_covar[i][j] = theta_covar[j][i] = gsl_stats_covariance(&theta[i][0], 1, &theta[j][0], 1, nstep);
+    }
+    theta_covar[i][i] = theta_var[i] * theta_var[i];
   }
   
   for(i=0; i<ntheta; i++)
@@ -1094,15 +1113,16 @@ void mcmc_stats()
   }
   set_scale(theta_mean);
   set_scale_err(theta_var);
+  set_scale_covar(theta_covar);
   scale_flux();
   
   fout = fopen("factor.txt", "w");
   printf("factor:\n");
   for(i=0; i<ncode; i++)
   {
-    printf("%s\t%f\t%f\n", code[i], ps_scale[i], es_scale[i]);
-    fprintf(fout, "%f\t%f\t%f\t%f\t%s\n", ps_scale[i], ps_scale_err[i], 
-      es_scale[i], es_scale_err[i], code[i]);
+    printf("%s\t%f\t%f\t%e\n", code[i], ps_scale[i], es_scale[i], pe_scale_covar[i]);
+    fprintf(fout, "%f\t%f\t%f\t%f\t%e\t%s\n", ps_scale[i], ps_scale_err[i], 
+      es_scale[i], es_scale_err[i],  pe_scale_covar[i], code[i]);
   }
   
   for(i=0; i<2; i++)
@@ -1127,9 +1147,16 @@ void mcmc_stats()
   //printf("%f\t%f\t%f\n", var_con_best[0], var_con_best[1], var_con_best[2]);
   //printf("%f\t%f\t%f\n", var_hb_best[0], var_hb_best[1], var_hb_best[2]);
 
+  for(i=0; i<ntheta; i++)
+    free(theta[i]);
   free(theta);
+
   free(theta_mean);
   free(theta_var);
+
+  for(i=0; i<ntheta; i++)
+    free(theta_covar[i]);
+  free(theta_covar);
 
   fclose(fmcmc);
   fclose(fout);
