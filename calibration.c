@@ -30,5 +30,7 @@ int calibrate()
   reconstruct_end();
 
   mcmc_memory_free();
+
+  return EXIT_SUCCESS;
 }
 

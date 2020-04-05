@@ -7,13 +7,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#include <string.h>
-#include <ctype.h>
 
-#include "proto.h"
-#include "allvars.h"
-
+int run(char *file_param);
 
 //start of the program
 int main(int argc, char *argv[])
@@ -23,15 +18,6 @@ int main(int argc, char *argv[])
     printf("# No parameter file is specified.\n");
     exit(0);
   }
-  strcpy(parset.file_param, argv[1]);
-
-  read_parset();
-
-  memory_malloc();
-  read_dataset();
-  
-  calibrate();
-   
-  memory_free();
-  return 0;
+  run(argv[1]);
+  return EXIT_SUCCESS;
 }
