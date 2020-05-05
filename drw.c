@@ -341,14 +341,14 @@ void set_mcmc_param(double *theta, double *stepsize, double (*range)[2], int nth
   i=0;
   range[i][0] = log(0.001);
   range[i++][1] = log(10.0);
-  range[i][0] = log(10.0);
+  range[i][0] = log(cadence);
   range[i++][1] = log(date_span_cont);
 
   if(parset.flag_line == 1)
   {
     range[i][0] = log(0.001);
     range[i++][1] = log(10.0);
-    range[i][0] = log(10.0);
+    range[i][0] = log(cadence);
     range[i++][1] = log(date_span_line);
   }
 

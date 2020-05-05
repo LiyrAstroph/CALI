@@ -220,6 +220,12 @@ int read_dataset()
   }
   ndrw = 1;
   date_span_cont = date_cont[nd_cont-1] - date_cont[0];
+  cadence = date_span_cont;
+  for(i=1; i<nd_cont; i++)
+  {
+    if(cadence > date_cont[i] - date_cont[i-1])
+      cadence = date_cont[i] - date_cont[i-1];
+  }
   
 
   //read line
@@ -298,6 +304,12 @@ int read_dataset()
 
     ndrw=2;
     date_span_line = date_line[nd_line-1] - date_cont[0];
+
+    for(i=1; i<nd_line; i++)
+    {
+      if(cadence > date_line[i] - date_line[i-1])
+        cadence = date_line[i] - date_line[i-1];
+    }
   }
 
 }

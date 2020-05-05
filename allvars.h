@@ -18,7 +18,7 @@ extern const int nd_max, ncode_max;
 extern int ncode, nd_cont, nd_line, ndrw;
 
 extern double **hbb, **optflux;
-extern double date_span_cont, date_span_line;
+extern double date_span_cont, date_span_line, cadence;
 
 extern double *date_cont, *date_line;
 extern double *date_cont_org, *date_line_org, **optflux_org, **hbb_org;

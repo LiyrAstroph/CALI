@@ -9,7 +9,7 @@ int ncode, nd_cont, nd_line, ndrw;
 
 double **hbb, **optflux;
 
-double date_span_cont, date_span_line;
+double date_span_cont, date_span_line, cadence;
 
 double *date_cont, *date_line;
 double *date_cont_org, *date_line_org, **optflux_org, **hbb_org;
