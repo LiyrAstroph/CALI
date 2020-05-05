@@ -155,6 +155,7 @@ int read_dataset()
   FILE *fcont, *fline;
   char str[300], strcode[100];
   int i, j, idx, ic;
+  double dt;
   
   // read continuum 
   fcont =fopen(parset.file_cont, "r");
@@ -223,8 +224,9 @@ int read_dataset()
   cadence = date_span_cont;
   for(i=1; i<nd_cont; i++)
   {
-    if(cadence > date_cont[i] - date_cont[i-1])
-      cadence = date_cont[i] - date_cont[i-1];
+    dt = date_cont[i] - date_cont[i-1];
+    if(cadence > dt && dt != 0.0)
+      cadence = dt;
   }
   
 
@@ -307,8 +309,9 @@ int read_dataset()
 
     for(i=1; i<nd_line; i++)
     {
-      if(cadence > date_line[i] - date_line[i-1])
-        cadence = date_line[i] - date_line[i-1];
+      dt = date_line[i] - date_line[i-1];
+      if(cadence > dt && dt != 0.0)
+        cadence = dt;
     }
   }
 
