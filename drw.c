@@ -1137,10 +1137,6 @@ void mcmc_stats()
     theta_covar[i][i] = theta_var[i] * theta_var[i];
   }
   
-  for(i=0; i<ntheta; i++)
-  {
-    printf("%f %f\n", theta_mean[i], theta_var[i]);
-  }
   set_scale(theta_mean);
   set_scale_err(theta_var);
   set_scale_covar(theta_covar);
