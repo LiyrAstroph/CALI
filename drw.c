@@ -861,6 +861,7 @@ double prob_variability_semi(double *var_con, double *var_hb)
 
     tau = var_hb[1];
     sigma = var_hb[0]*sqrt(tau);
+    sigma2 = sigma*sigma;
     alpha = var_hb[2];
 
     for(i=0;i<nd_line;i++)
@@ -984,6 +985,7 @@ double prob_variability_semi_beta(double *var_con, double *var_hb, double beta)
     
     tau = var_hb[1];
     sigma = var_hb[0]*sqrt(tau);
+    sigma2 = sigma*sigma;
     alpha = var_hb[2];
 
     for(i=0;i<nd_line;i++)
