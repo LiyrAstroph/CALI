@@ -1,3 +1,5 @@
+## CALI is no longer maintained. Please use the Python version ![pyCALI](https://github.com/LiyrAstroph/pyCALI), which uses a more sophisticated optimizing alogrithm.
+
 # CALI
 A Bayesian method for the inter-calibration of spectra in reverberation mapping
 
